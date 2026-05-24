@@ -16,6 +16,10 @@
   <!-- App-Icon (rosa oben / blau unten, wie "beide Urlaub") -->
   <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'&gt;&lt;defs&gt;&lt;linearGradient id='g' x1='0' y1='0' x2='0' y2='1'&gt;&lt;stop offset='50%25' stop-color='%23F0659A'/&gt;&lt;stop offset='50%25' stop-color='%234A90D9'/&gt;&lt;/linearGradient&gt;&lt;/defs&gt;&lt;rect width='180' height='180' rx='40' fill='url(%23g)'/&gt;&lt;text x='90' y='128' font-size='110' text-anchor='middle'&gt;%E2%9C%88%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;" />
   <link rel="icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;text y='26' font-size='28'&gt;%E2%9C%88%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;" />
+
+  <!-- Firebase SDK (compat – funktioniert ohne Module-Bundler) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     :root {
       --v:       #F0659A;
@@ -529,6 +533,142 @@
     }
     .reset-btn:hover { opacity: 1; }
 
+    /* ── CLOUD SYNC ─────────────────────────────────────────── */
+    .sync-btn {
+      position: relative;
+      width: 38px; height: 38px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      transition: background .15s;
+    }
+    .sync-btn:hover { background: var(--bg); }
+    .sync-status-dot {
+      position: absolute;
+      top: 5px; right: 5px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      border: 1.5px solid white;
+    }
+    .sync-status-dot.connected { background: #2ecc71; }
+    .sync-status-dot.syncing   { background: #f39c12; animation: syncpulse 1s infinite; }
+    .sync-status-dot.offline   { background: #95a5a6; }
+    .sync-status-dot.error     { background: #e74c3c; }
+    @keyframes syncpulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(1.2); }
+    }
+
+    .sync-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.25);
+      z-index: 199;
+      animation: fadeIn .15s;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .sync-panel {
+      position: fixed;
+      top: 60px;
+      right: 14px;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+      padding: 18px;
+      z-index: 200;
+      width: 340px;
+      max-width: calc(100vw - 28px);
+      animation: slideIn .2s;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .sync-panel h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sync-panel .sync-status-line {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sync-panel .sync-status-line.connected { color: #27ae60; font-weight: 600; }
+    .sync-panel .sync-section { margin-bottom: 14px; }
+    .sync-panel .sync-section:last-child { margin-bottom: 0; }
+    .sync-panel label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: .04em;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .sync-code-box {
+      display: flex; gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+    }
+    .sync-code-box code {
+      flex: 1;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      color: var(--text);
+      user-select: all;
+      word-break: break-all;
+      letter-spacing: .04em;
+    }
+    .sync-code-box button {
+      flex-shrink: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .sync-code-box button:hover { background: var(--bg); }
+    .sync-hint {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .sync-action-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+      color: var(--text);
+    }
+    .sync-action-btn:hover { background: var(--bg); border-color: var(--muted); }
+    .sync-action-btn.primary {
+      background: var(--text);
+      color: white;
+      border-color: var(--text);
+    }
+    .sync-action-btn.primary:hover { background: #000; }
+    .sync-action-btn.danger {
+      color: #e74c3c;
+      border-color: rgba(231,76,60,.3);
+    }
+    .sync-action-btn.danger:hover { background: rgba(231,76,60,.08); }
+
     /* ═══════════════════════════════════════════════════════════
        MOBILE / iPhone (< 820px)
        ═══════════════════════════════════════════════════════════ */
@@ -675,6 +815,11 @@
     <button class="mode-btn gleit"         id="modeG" onclick="setMode('g')">⏱ Gleittag</button>
   </div>
 
+  <button class="sync-btn" id="syncBtn" onclick="toggleSyncPanel()" title="Cloud-Sync mit Vanessa">
+    <span class="sync-status-dot offline" id="syncDot"></span>
+    ☁
+  </button>
+
   <div class="state-wrap">
     <span class="state-label">Bundesland</span>
     <select id="stateSelect" onchange="setState(this.value)">
@@ -745,9 +890,44 @@
 </div>
 
 <div id="toast">Gespeichert ✓</div>
+
+<!-- Cloud Sync Panel -->
+<div class="sync-backdrop" id="syncBackdrop" onclick="closeSyncPanel()" hidden></div>
+<div class="sync-panel" id="syncPanel" hidden>
+  <h3>☁ Cloud-Sync</h3>
+  <div class="sync-status-line" id="syncStatusLine">Verbinde …</div>
+
+  <div class="sync-section">
+    <label>Dein Sync-Code</label>
+    <div class="sync-code-box">
+      <code id="syncCodeDisplay">—</code>
+      <button onclick="copySyncCode()" id="syncCopyBtn">Kopieren</button>
+    </div>
+    <div class="sync-hint">Diesen Code mit Vanessa teilen. Sie gibt ihn in <em>ihrer</em> App ein und ihr seid verbunden.</div>
+  </div>
+
+  <div class="sync-section">
+    <button class="sync-action-btn primary" onclick="enterPartnerCode()">Mit Partner-Code verbinden</button>
+  </div>
+
+  <div class="sync-section">
+    <button class="sync-action-btn" onclick="closeSyncPanel()">Schließen</button>
+  </div>
+</div>
 <button class="reset-btn" title="Jahr zurücksetzen" onclick="resetYear()">🗑️</button>
 
 <script>
+  // ── Firebase Konfiguration ────────────────────────────────────
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyCZfXws7EiN4bX-DGV__Wp67ITYC5_2d-4",
+    authDomain:        "urlaubsplanungvamo.firebaseapp.com",
+    databaseURL:       "https://urlaubsplanungvamo-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "urlaubsplanungvamo",
+    storageBucket:     "urlaubsplanungvamo.firebasestorage.app",
+    messagingSenderId: "819765498078",
+    appId:             "1:819765498078:web:8cb5f54bc450ab119e324f"
+  };
+
   const TOTAL  = { v: 36, m: 27 };
   const MONTHS = ['Januar','Februar','März','April','Mai','Juni',
                   'Juli','August','September','Oktober','November','Dezember'];
@@ -902,6 +1082,7 @@
     localStorage.setItem('up_view',       viewMode);
     localStorage.setItem('up_mode',       markMode);
     flashToast();
+    schedulePush();   // Cloud-Sync (debounced)
   }
 
   function load() {
@@ -1221,10 +1402,10 @@
   }
 
   document.addEventListener('mouseup', () => {
-    if (dragging) { dragging = false; save(); render(); updateStats(); }
+    if (dragging) { dragging = false; save(); render(); updateStats(); flushPendingCloudData(); }
   });
   document.addEventListener('mouseleave', () => {
-    if (dragging) { dragging = false; save(); render(); updateStats(); }
+    if (dragging) { dragging = false; save(); render(); updateStats(); flushPendingCloudData(); }
   });
 
   // ── Touch Support (iPhone / iPad) ─────────────────────────────
@@ -1303,6 +1484,7 @@
     if (touchLongPressFired) {
       // Label-Editor wurde geöffnet, kein Toggle
       touchStartKey = null;
+      flushPendingCloudData();
       return;
     }
     if (dragging) {
@@ -1314,6 +1496,7 @@
       save(); render(); updateStats();
     }
     touchStartKey = null;
+    flushPendingCloudData();
   }
   document.addEventListener('touchend',    endTouch);
   document.addEventListener('touchcancel', endTouch);
@@ -1648,6 +1831,280 @@
     return e;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  CLOUD SYNC mit Firebase Realtime Database
+  // ═══════════════════════════════════════════════════════════════
+  let cloudRef        = null;        // Firebase Reference (couple)
+  let cloudYearRef    = null;        // Reference auf aktuelle Jahr-Daten
+  let coupleId        = null;        // Geheimer Pfad / "Passwort"
+  const myInstanceId  = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now());
+  let lastPushHash    = null;        // anti-pingpong
+  let pushTimer       = null;
+  let cloudReady      = false;
+  let suppressCloudPush = false;     // beim Anwenden von Cloud-Daten lokal: kein Re-Push
+
+  // — Couple Code Helpers —
+  function generateCoupleId() {
+    const chars = 'abcdefghjkmnpqrstuvwxyz23456789'; // ohne 0/o/l/1/i
+    const arr   = new Uint32Array(24);
+    crypto.getRandomValues(arr);
+    let s = '';
+    for (let i = 0; i < 24; i++) s += chars[arr[i] % chars.length];
+    return s;
+  }
+  function loadCoupleId() {
+    let id = localStorage.getItem('up_coupleId');
+    if (!id) {
+      id = generateCoupleId();
+      localStorage.setItem('up_coupleId', id);
+    }
+    return id;
+  }
+  function isValidCoupleId(id) {
+    return typeof id === 'string' && id.length > 20 && /^[a-z2-9]+$/.test(id);
+  }
+
+  // — Status UI —
+  function setSyncStatus(state, text) {
+    const dot  = document.getElementById('syncDot');
+    const line = document.getElementById('syncStatusLine');
+    dot.className = 'sync-status-dot ' + state;
+    if (line) {
+      line.textContent = text;
+      line.className   = 'sync-status-line ' + (state === 'connected' ? 'connected' : '');
+    }
+  }
+
+  // — Initialisierung —
+  function initCloud() {
+    if (typeof firebase === 'undefined') {
+      setSyncStatus('offline', 'Firebase SDK nicht geladen');
+      return;
+    }
+    if (!FIREBASE_CONFIG.apiKey) {
+      setSyncStatus('offline', 'Nicht konfiguriert');
+      return;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    coupleId = loadCoupleId();
+
+    cloudRef = firebase.database().ref(coupleId);
+    cloudReady = true;
+    document.getElementById('syncCodeDisplay').textContent = coupleId;
+
+    // Verbindungsstatus überwachen
+    firebase.database().ref('.info/connected').on('value', snap => {
+      if (snap.val()) setSyncStatus('connected', '✓ Verbunden – Änderungen werden live geteilt');
+      else            setSyncStatus('offline',   'Offline – synchronisiert wenn wieder online');
+    });
+
+    subscribeCloud();
+  }
+
+  function subscribeCloud() {
+    if (!cloudRef) return;
+    // alle Daten unter unserer Couple-ID beobachten
+    cloudRef.on('value', onCloudData, err => {
+      console.warn('Cloud error', err);
+      setSyncStatus('error', 'Fehler: ' + err.message);
+    });
+  }
+
+  function unsubscribeCloud() {
+    if (cloudRef) cloudRef.off();
+  }
+
+  // — Cloud → Lokal —
+  let pendingCloudData = null;
+
+  function onCloudData(snapshot) {
+    const data = snapshot.val();
+    if (!data) {
+      // Erste Verbindung, noch keine Daten in der Cloud → unsere Daten hochladen
+      schedulePush();
+      return;
+    }
+    // Eigene Schreibvorgänge nicht zurück anwenden
+    if (data._meta && data._meta.writer === myInstanceId) return;
+    // Während Drag oder Touch: aufschieben bis fertig
+    if (dragging || touchStartKey) {
+      pendingCloudData = data;
+      return;
+    }
+    applyCloudData(data);
+  }
+
+  function flushPendingCloudData() {
+    if (pendingCloudData) {
+      const d = pendingCloudData;
+      pendingCloudData = null;
+      applyCloudData(d);
+    }
+  }
+
+  function applyCloudData(data) {
+    suppressCloudPush = true;
+    try {
+      // Globale Felder
+      if (data.bundesland && data.bundesland !== state) {
+        state    = data.bundesland;
+        holidays = buildHolidays(year, state);
+        const sel = document.getElementById('stateSelect');
+        if (sel) sel.value = state;
+      }
+      // Merge statt Überschreiben: lokale Jahre die noch nicht in der Cloud sind bleiben erhalten
+      if (data.carryover && typeof data.carryover === 'object') {
+        carryover = Object.assign({}, carryover, data.carryover);
+      }
+      if (data.gleitDays && typeof data.gleitDays === 'object') {
+        gleitDays = Object.assign({}, gleitDays, data.gleitDays);
+      }
+
+      // Jahre-Cache aktualisieren (nur Jahre die in Cloud sind, andere localStorage-Einträge bleiben)
+      if (data.years) {
+        for (const [y, yd] of Object.entries(data.years)) {
+          if (yd && typeof yd === 'object') {
+            localStorage.setItem('up_marks_'  + y, JSON.stringify(yd.marks  || {}));
+            localStorage.setItem('up_gleit_'  + y, JSON.stringify(yd.gleit  || {}));
+            localStorage.setItem('up_labels_' + y, JSON.stringify(yd.labels || {}));
+          }
+        }
+      }
+
+      // Aktuelle Jahr-Daten in Memory laden – aber nur wenn Cloud Daten dafür hat
+      const yd = data.years && data.years[year];
+      if (yd) {
+        marks  = {};
+        gleit  = {};
+        labels = {};
+        if (yd.marks)  for (const [k, arr] of Object.entries(yd.marks))  marks[k] = new Set(Array.isArray(arr) ? arr : Object.values(arr));
+        if (yd.gleit)  for (const [k, arr] of Object.entries(yd.gleit))  gleit[k] = new Set(Array.isArray(arr) ? arr : Object.values(arr));
+        if (yd.labels) labels = yd.labels;
+      }
+      // Wenn Cloud nichts zum aktuellen Jahr hat: lokale Daten lassen (werden beim nächsten save() hochgeladen)
+
+      // localStorage syncen (damit Reload schnell ist)
+      localStorage.setItem('up_state',     state);
+      localStorage.setItem('up_carryover', JSON.stringify(carryover));
+      localStorage.setItem('up_gleitdays', JSON.stringify(gleitDays));
+      localStorage.setItem('up_marks_'  + year, JSON.stringify(serializeSet(marks)));
+      localStorage.setItem('up_gleit_'  + year, JSON.stringify(serializeSet(gleit)));
+      localStorage.setItem('up_labels_' + year, JSON.stringify(labels));
+
+      render();
+      updateStats();
+      updateCarryButtons();
+
+      // Falls Cloud nichts zum aktuellen Jahr hat: lokale Daten in die Cloud schreiben
+      if (!yd && Object.keys(marks).length + Object.keys(gleit).length + Object.keys(labels).length > 0) {
+        suppressCloudPush = false;
+        schedulePush();
+      }
+    } finally {
+      suppressCloudPush = false;
+    }
+  }
+
+  function serializeSet(map) {
+    const out = {};
+    for (const [k, s] of Object.entries(map)) out[k] = [...s];
+    return out;
+  }
+
+  // — Lokal → Cloud —
+  // Nur das aktuelle Jahr + globale Felder werden geschrieben (mit update).
+  // Andere Jahre bleiben in der Cloud unangetastet → keine Race-Conditions.
+  function cloudPush() {
+    if (!cloudRef || !cloudReady) return;
+    setSyncStatus('syncing', 'Synchronisiere …');
+    const yearPayload = {
+      marks:  serializeSet(marks),
+      gleit:  serializeSet(gleit),
+      labels: labels
+    };
+    const updates = {
+      bundesland:                state,
+      [`years/${year}`]:         yearPayload,
+      [`carryover/${year}`]:     (carryover[year] && Object.keys(carryover[year]).length) ? carryover[year] : null,
+      [`gleitDays/${year}`]:     (gleitDays[year] && Object.keys(gleitDays[year]).length) ? gleitDays[year] : null,
+      _meta: { writer: myInstanceId, ts: Date.now() }
+    };
+    cloudRef.update(updates).then(() => {
+      setSyncStatus('connected', '✓ Synchronisiert');
+    }).catch(err => {
+      console.error('Cloud push failed', err);
+      setSyncStatus('error', 'Fehler: ' + err.message);
+    });
+  }
+
+  function schedulePush() {
+    if (!cloudRef || suppressCloudPush) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(cloudPush, 400);
+  }
+
+  // — Panel UI —
+  function toggleSyncPanel() {
+    const panel = document.getElementById('syncPanel');
+    if (panel.hasAttribute('hidden')) openSyncPanel();
+    else closeSyncPanel();
+  }
+  function openSyncPanel() {
+    document.getElementById('syncBackdrop').removeAttribute('hidden');
+    document.getElementById('syncPanel').removeAttribute('hidden');
+    document.getElementById('syncCodeDisplay').textContent = coupleId || '— nicht initialisiert —';
+  }
+  function closeSyncPanel() {
+    document.getElementById('syncBackdrop').setAttribute('hidden','');
+    document.getElementById('syncPanel').setAttribute('hidden','');
+  }
+
+  async function copySyncCode() {
+    if (!coupleId) return;
+    const btn = document.getElementById('syncCopyBtn');
+    try {
+      await navigator.clipboard.writeText(coupleId);
+      btn.textContent = 'Kopiert ✓';
+      setTimeout(() => btn.textContent = 'Kopieren', 1500);
+    } catch (e) {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = coupleId; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Kopiert ✓';
+      setTimeout(() => btn.textContent = 'Kopieren', 1500);
+    }
+  }
+
+  function enterPartnerCode() {
+    const input = prompt(
+      'Code von deinem Partner eingeben.\n\n' +
+      'Achtung: Deine bisherigen lokalen Markierungen werden durch die Daten deines Partners ersetzt.\n\n' +
+      'Code:',
+      ''
+    );
+    if (input === null) return;
+    const code = input.trim().toLowerCase().replace(/\s+/g, '');
+    if (!isValidCoupleId(code)) {
+      alert('Ungültiger Code. Codes haben mindestens 21 Zeichen (a-z, 2-9).');
+      return;
+    }
+    if (code === coupleId) {
+      alert('Das ist bereits dein eigener Code.');
+      return;
+    }
+    // Umschalten
+    unsubscribeCloud();
+    coupleId = code;
+    localStorage.setItem('up_coupleId', code);
+    cloudRef = firebase.database().ref(coupleId);
+    document.getElementById('syncCodeDisplay').textContent = coupleId;
+    setSyncStatus('syncing', 'Lade Daten vom Partner …');
+    subscribeCloud();
+    closeSyncPanel();
+  }
+
   // ── Init ──────────────────────────────────────────────────────
   load();
   document.getElementById('yearDisplay').textContent = year;
@@ -1668,6 +2125,9 @@
   render();
   updateStats();
   updateCarryButtons();
+
+  // Cloud-Sync starten (kann jetzt; localStorage wurde geladen)
+  initCloud();
 </script>
 </body>
 </html>
