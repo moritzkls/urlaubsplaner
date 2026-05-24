@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>Urlaubsplaner ✈️</title>
+
+  <!-- iOS PWA: Add to Home Screen support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Urlaub" />
+  <meta name="theme-color" content="#F0659A" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- App-Icon (rosa oben / blau unten, wie "beide Urlaub") -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'&gt;&lt;defs&gt;&lt;linearGradient id='g' x1='0' y1='0' x2='0' y2='1'&gt;&lt;stop offset='50%25' stop-color='%23F0659A'/&gt;&lt;stop offset='50%25' stop-color='%234A90D9'/&gt;&lt;/linearGradient&gt;&lt;/defs&gt;&lt;rect width='180' height='180' rx='40' fill='url(%23g)'/&gt;&lt;text x='90' y='128' font-size='110' text-anchor='middle'&gt;%E2%9C%88%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;" />
+  <link rel="icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;text y='26' font-size='28'&gt;%E2%9C%88%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;" />
+  <style>
+    :root {
+      --v:       #F0659A;
+      --v-bg:    #FDE8F0;
+      --m:       #4A90D9;
+      --m-bg:    #E3F0FF;
+      --both:    #9B59B6;
+      --holiday: #F4A300;
+      --border:  #E8E8E8;
+      --muted:   #999;
+      --text:    #2C2C2C;
+      --bg:      #F4F5F7;
+      --card:    #FFFFFF;
+      --shadow:  0 2px 10px rgba(0,0,0,.07);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 11px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      box-shadow: var(--shadow);
+    }
+
+    .logo { font-size: 17px; font-weight: 700; white-space: nowrap; }
+    .logo span { color: var(--muted); font-weight: 400; font-size: 14px; }
+
+    /* View toggle (Grid / Linear) */
+    .view-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .vt-btn {
+      background: white;
+      border: none;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .15s;
+      line-height: 1;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .vt-btn + .vt-btn { border-left: 1px solid var(--border); }
+    .vt-btn:hover { background: var(--bg); color: var(--text); }
+    .vt-btn.active { background: var(--text); color: white; }
+    .vt-btn .vt-label { font-size: 12px; font-weight: 600; }
+
+    .year-nav { display: flex; align-items: center; gap: 10px; }
+    .year-nav button {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: none; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s; line-height: 1;
+    }
+    .year-nav button:hover { background: var(--bg); }
+    #yearDisplay { font-size: 17px; font-weight: 700; min-width: 52px; text-align: center; }
+
+    .person-toggle { display: flex; gap: 6px; }
+    .ptbtn {
+      padding: 6px 16px; border-radius: 20px; border: 2px solid transparent;
+      cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s;
+      background: var(--card); white-space: nowrap;
+    }
+    .ptbtn.v { border-color: var(--v); color: var(--v); }
+    .ptbtn.v.active { background: var(--v); color: #fff; }
+    .ptbtn.m { border-color: var(--m); color: var(--m); }
+    .ptbtn.m.active { background: var(--m); color: #fff; }
+
+    /* Mode toggle: Urlaub / Gleittag */
+    .mode-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .mode-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .15s;
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .mode-btn:hover:not(.active) { background: var(--bg); }
+    .mode-btn.active { background: var(--text); color: white; }
+    .mode-btn.gleit.active { background: #555; }
+
+    /* State selector */
+    .state-wrap { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .state-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    #stateSelect {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 5px 8px; font-size: 13px; color: var(--text);
+      background: white; cursor: pointer; outline: none;
+      transition: border-color .15s;
+    }
+    #stateSelect:focus { border-color: var(--m); }
+
+    /* ── CALENDAR ── */
+    .cal-wrap { padding: 16px 16px 110px; }
+    .cal-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .cal-grid.view-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    /* ── LINEAR (Jahrestabelle) ── */
+    .cal-grid.view-linear {
+      display: grid;
+      grid-template-columns: 34px repeat(12, 1fr);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .l-corner {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .l-month {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px 6px;
+      text-align: center;
+      position: relative;
+    }
+    .l-month:last-child { border-right: none; }
+    .l-month .l-badges {
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+      margin-top: 3px;
+      min-height: 13px;
+    }
+    .l-daynum {
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid #f4f4f4;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+    .l-daynum:last-child { border-bottom: none; }
+
+    .cal-grid.view-linear .day {
+      aspect-ratio: auto;
+      height: auto;
+      min-height: 22px;
+      border-radius: 0;
+      border-right: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f4f4f4;
+      font-size: 10px;
+      gap: 3px;
+    }
+    .cal-grid.view-linear .day:hover:not(.empty):not(.l-invalid) {
+      transform: none;
+      outline: 2px solid var(--text);
+      outline-offset: -2px;
+      z-index: 3;
+    }
+    .cal-grid.view-linear .day.l-invalid {
+      background: #fafafa;
+      cursor: default;
+      pointer-events: none;
+    }
+    .cal-grid.view-linear .day .wd-letter {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .cal-grid.view-linear .day.v-only .wd-letter,
+    .cal-grid.view-linear .day.m-only .wd-letter,
+    .cal-grid.view-linear .day.both .wd-letter {
+      color: white;
+    }
+    .cal-grid.view-linear .day.we:not(.v-only):not(.m-only):not(.both) {
+      background: #f7f7f7;
+    }
+    /* Adjust holiday triangle slightly for linear view */
+    .cal-grid.view-linear .day.holiday::after {
+      border-width: 0 0 6px 6px;
+    }
+
+    .month-card {
+      background: var(--card); border-radius: 12px; padding: 12px;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+    }
+    .month-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .month-name { font-size: 13px; font-weight: 700; }
+    .month-badges { display: flex; gap: 3px; }
+    .mbadge { font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; display: none; }
+    .mbadge.v  { background: var(--v-bg); color: var(--v); }
+    .mbadge.m  { background: var(--m-bg); color: var(--m); }
+    .mbadge.show { display: block; }
+
+    .wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 2px; }
+    .wd { text-align: center; font-size: 9px; color: var(--muted); font-weight: 600; padding: 2px 0; }
+    .wd.we { color: #d0d0d0; }
+
+    .days-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px; font-size: 11px; cursor: pointer;
+      position: relative; user-select: none; color: var(--text);
+      transition: transform .08s;
+    }
+    .day:hover:not(.empty) { transform: scale(1.15); z-index: 2; }
+    .day.empty  { cursor: default; pointer-events: none; }
+    .day.we     { color: #d0d0d0; }
+    .day.today  { outline: 2px solid var(--text); outline-offset: -2px; font-weight: 800; }
+
+    /* Markierungen */
+    .day.v-only { background: var(--v); color: #fff; }
+    .day.m-only { background: var(--m); color: #fff; }
+    .day.both   { color: #fff; }
+    .day.both::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
+      border-radius: inherit;
+    }
+    .day span.wd-letter,
+    .day > span { position: relative; z-index: 1; }
+    .day.both span { text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+
+    /* Gleittage = diagonale Streifen */
+    .day.v-gleit {
+      background: repeating-linear-gradient(
+        45deg,
+        var(--v), var(--v) 4px,
+        rgba(255,255,255,.55) 4px, rgba(255,255,255,.55) 7px
+      );
+      color: #fff;
+    }
+    .day.m-gleit {
+      background: repeating-linear-gradient(
+        45deg,
+        var(--m), var(--m) 4px,
+        rgba(255,255,255,.55) 4px, rgba(255,255,255,.55) 7px
+      );
+      color: #fff;
+    }
+    .day.v-gleit span.wd-letter,
+    .day.m-gleit span.wd-letter,
+    .day.v-gleit > span,
+    .day.m-gleit > span { text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+    /* Both-Gleit (beide haben Gleittag): gestreifter Verlauf */
+    .day.both-gleit { color: #fff; }
+    .day.both-gleit::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0, rgba(255,255,255,.55) 3px, transparent 3px, transparent 6px),
+        linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
+      border-radius: inherit;
+    }
+    .day.both-gleit > span { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+
+    /* ── BLÖCKE: zusammenhängende Tage ────────────────────────── */
+
+    /* Bridge: kleines farbiges Stück das den Gap zwischen 2 Zellen füllt */
+    .block-bridge {
+      position: absolute;
+      z-index: 0;
+      display: none;
+      pointer-events: none;
+    }
+    .day.block-start .block-bridge,
+    .day.block-mid   .block-bridge { display: block; }
+
+    /* Grid view: bridge nach rechts (2px) */
+    .cal-grid.view-grid .block-bridge {
+      right: -2px; top: 0; bottom: 0; width: 2px;
+    }
+    .cal-grid.view-grid .day.v-only  .block-bridge,
+    .cal-grid.view-grid .day.v-gleit .block-bridge { background: var(--v); }
+    .cal-grid.view-grid .day.m-only  .block-bridge,
+    .cal-grid.view-grid .day.m-gleit .block-bridge { background: var(--m); }
+    .cal-grid.view-grid .day.both       .block-bridge,
+    .cal-grid.view-grid .day.both-gleit .block-bridge {
+      background: linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
+    }
+
+    /* Border-radius: nur am Block-Anfang/Ende rund */
+    .cal-grid.view-grid .day.block-start {
+      border-top-right-radius: 0; border-bottom-right-radius: 0;
+    }
+    .cal-grid.view-grid .day.block-mid {
+      border-radius: 0;
+    }
+    .cal-grid.view-grid .day.block-end {
+      border-top-left-radius: 0; border-bottom-left-radius: 0;
+    }
+
+    /* Linear view: bridge nach unten, Border-bottom entfernen */
+    .cal-grid.view-linear .day.block-start,
+    .cal-grid.view-linear .day.block-mid {
+      border-bottom: none;
+    }
+    .cal-grid.view-linear .block-bridge {
+      left: 0; right: 0; bottom: -1px; height: 1px;
+    }
+    .cal-grid.view-linear .day.v-only  .block-bridge,
+    .cal-grid.view-linear .day.v-gleit .block-bridge { background: var(--v); }
+    .cal-grid.view-linear .day.m-only  .block-bridge,
+    .cal-grid.view-linear .day.m-gleit .block-bridge { background: var(--m); }
+    .cal-grid.view-linear .day.both       .block-bridge,
+    .cal-grid.view-linear .day.both-gleit .block-bridge {
+      background: linear-gradient(90deg, var(--v) 50%, var(--m) 50%);
+    }
+
+    /* ── BESCHRIFTUNGEN ──────────────────────────────────────── */
+    .block-label {
+      position: absolute;
+      z-index: 6;
+      top: 2px;
+      left: 2px;
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      background: rgba(255,255,255,.94);
+      color: var(--text);
+      padding: 1px 6px;
+      border-radius: 7px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.18);
+      pointer-events: auto;
+      display: none;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity .15s, box-shadow .15s, transform .15s;
+      line-height: 1.4;
+    }
+    .block-label.placeholder {
+      background: rgba(255,255,255,.85);
+      color: var(--muted);
+      font-style: italic;
+      font-weight: 500;
+      opacity: 0;
+    }
+    /* Label nur am Block-Anfang (oder einzelnen Tag) sichtbar */
+    .day.has-label.block-start .block-label,
+    .day.has-label:not(.block-mid):not(.block-end) .block-label {
+      display: block;
+    }
+    /* Beim Hover Placeholder einblenden */
+    .day.block-start:hover .block-label.placeholder,
+    .day:hover:not(.block-mid):not(.block-end) .block-label.placeholder {
+      display: block;
+      opacity: 1;
+    }
+    .block-label:hover {
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+      transform: translateY(-1px);
+    }
+    /* In linear view: keine Floating-Labels (zu eng) – nur Tooltip via title */
+    .cal-grid.view-linear .block-label { display: none !important; }
+
+    /* ── Feiertag-Indikator: kleines orange Dreieck unten rechts ── */
+    .day.holiday::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0;
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 0 0 7px 7px;
+      border-color: transparent transparent var(--holiday) transparent;
+      z-index: 3;
+      border-radius: 0 0 4px 0;
+    }
+    /* Unmarked holiday: soft amber tint */
+    .day.holiday:not(.v-only):not(.m-only):not(.both) {
+      background: #FFF4E0;
+    }
+    /* Holiday on weekend – slightly warm colour */
+    .day.holiday.we { color: #ccc; }
+
+    /* ── STATS BAR – always solid, fixed ── */
+    .stats-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 90px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 32px;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+      z-index: 50;
+    }
+
+    .stat { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 110px; }
+    .stat-label {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .04em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .carry-btn {
+      border: 1px dashed var(--border);
+      background: transparent;
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+      transition: all .15s;
+    }
+    .carry-btn:hover { border-color: var(--muted); color: var(--text); }
+    .carry-btn.has-value {
+      border: 1px solid currentColor;
+      border-style: solid;
+    }
+    .stat.v .carry-btn.has-value { color: var(--v); background: var(--v-bg); }
+    .stat.m .carry-btn.has-value { color: var(--m); background: var(--m-bg); }
+
+    /* Gleit status line under progress bar */
+    .gleit-status {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .gleit-status.warn { color: #e74c3c; font-weight: 700; }
+    .gleit-status .gd { font-weight: 700; }
+    .stat.v .gleit-status .gd { color: var(--v); }
+    .stat.m .gleit-status .gd { color: var(--m); }
+    .stat-num   { font-size: 30px; font-weight: 800; line-height: 1; }
+    .stat.v .stat-num { color: var(--v); }
+    .stat.m .stat-num { color: var(--m); }
+    .stat.b .stat-num { color: var(--both); }
+    .stat-sub { font-size: 11px; color: var(--muted); }
+    .stat-sub.warn { color: #e74c3c; font-weight: 700; }
+    .stat-track { width: 100px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .stat-fill  { height: 100%; border-radius: 2px; transition: width .4s; }
+    .stat.v .stat-fill { background: var(--v); }
+    .stat.m .stat-fill { background: var(--m); }
+    .divider { width: 1px; background: var(--border); align-self: stretch; }
+
+    /* Feiertag-Legende in Stats */
+    .legend {
+      position: absolute; right: 24px; bottom: 50%;
+      transform: translateY(50%);
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--muted);
+    }
+    .legend-dot {
+      width: 0; height: 0;
+      border-style: solid; border-width: 0 0 8px 8px;
+      border-color: transparent transparent var(--holiday) transparent;
+      flex-shrink: 0;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+      background: rgba(44,44,44,.88); color: #fff;
+      padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      pointer-events: none; opacity: 0; transition: opacity .25s;
+      z-index: 200; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── RESET ── */
+    .reset-btn {
+      position: fixed; bottom: 100px; right: 20px;
+      background: white; border: 1px solid var(--border); border-radius: 50%;
+      width: 36px; height: 36px; font-size: 15px; cursor: pointer;
+      box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center;
+      opacity: .4; transition: opacity .2s; z-index: 55;
+    }
+    .reset-btn:hover { opacity: 1; }
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE / iPhone (< 820px)
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 820px) {
+      body {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+
+      /* Header: zweizeilig mit Wrap */
+      header {
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        padding-top: max(8px, env(safe-area-inset-top));
+        gap: 8px;
+        row-gap: 6px;
+      }
+      .logo { font-size: 14px; flex: 1; min-width: 0; }
+      .logo span { display: none; }
+
+      .year-nav button { width: 34px; height: 34px; font-size: 18px; }
+      #yearDisplay { font-size: 15px; min-width: 44px; }
+
+      .view-toggle { order: 10; flex: 1; justify-content: stretch; }
+      .vt-btn { flex: 1; justify-content: center; padding: 8px 6px; }
+      .vt-btn .vt-label { font-size: 11px; }
+
+      .person-toggle { order: 20; flex: 1; }
+      .ptbtn { padding: 8px 12px; font-size: 12px; flex: 1; text-align: center; }
+
+      .mode-toggle { order: 30; flex: 1; }
+      .mode-btn { padding: 8px 10px; font-size: 11px; flex: 1; justify-content: center; }
+
+      .state-wrap { order: 40; flex: 1; min-width: 0; }
+      .state-label { display: none; }
+      #stateSelect { flex: 1; width: 100%; padding: 8px; font-size: 13px; }
+
+      /* Kalender: 2 statt 4 Spalten */
+      .cal-wrap {
+        padding: 10px 10px;
+        padding-bottom: 280px;
+      }
+      .cal-grid.view-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .month-card { padding: 10px 8px; }
+      .month-name { font-size: 13px; }
+      .wd { font-size: 10px; }
+      .day { font-size: 12px; border-radius: 6px; }
+      .day:hover:not(.empty) { transform: none; } /* Hover-Scale aus auf Touch */
+
+      /* Jahrestabelle horizontal scrollbar machen */
+      .cal-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .cal-grid.view-linear {
+        min-width: 900px;
+        font-size: 10px;
+      }
+      .cal-grid.view-linear .day { min-height: 24px; }
+
+      /* Stats Bar: vertikal stapeln */
+      .stats-bar {
+        height: auto;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 14px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+      }
+      .stats-bar .divider { display: none; }
+      .stat {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+      }
+      .stat-label { min-width: 0; flex: 1; }
+      .stat-num { font-size: 24px; }
+      .stat-sub { font-size: 10px; }
+      .stat-track { width: 100%; flex-basis: 100%; }
+      .gleit-status { font-size: 10px; flex-basis: 100%; }
+
+      .legend { position: static; transform: none; margin-top: 4px; font-size: 10px; }
+
+      /* Größere Tap-Targets für Buttons */
+      .carry-btn { padding: 4px 10px; font-size: 11px; }
+
+      /* Reset & Toast sicherer positionieren */
+      .reset-btn {
+        bottom: max(220px, calc(220px + env(safe-area-inset-bottom)));
+        width: 40px; height: 40px;
+      }
+      #toast {
+        bottom: max(220px, calc(220px + env(safe-area-inset-bottom)));
+      }
+
+      /* Labels etwas kleiner auf Mobile */
+      .block-label { font-size: 8px; padding: 1px 5px; }
+    }
+
+    /* Sehr kleine Screens (iPhone SE etc.) */
+    @media (max-width: 380px) {
+      .cal-grid.view-grid {
+        grid-template-columns: 1fr;
+      }
+      .vt-btn .vt-label,
+      .ptbtn { font-size: 11px; }
+    }
+
+    /* PWA – wenn als Home-Screen-App geöffnet */
+    @media (display-mode: standalone) {
+      body { user-select: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✈️ Urlaubsplaner <span>Vanessa &amp; Moritz</span></div>
+
+  <div class="year-nav">
+    <button id="btnPrev">‹</button>
+    <div id="yearDisplay">2026</div>
+    <button id="btnNext">›</button>
+  </div>
+
+  <div class="view-toggle" title="Ansicht wechseln">
+    <button class="vt-btn active" id="vtGrid"   onclick="setView('grid')">
+      <span>▦</span><span class="vt-label">Raster</span>
+    </button>
+    <button class="vt-btn"        id="vtLinear" onclick="setView('linear')">
+      <span>▥</span><span class="vt-label">Tabelle</span>
+    </button>
+  </div>
+
+  <div class="person-toggle">
+    <button class="ptbtn v active" id="btnV" onclick="setPerson('v')">💗 Vanessa</button>
+    <button class="ptbtn m"        id="btnM" onclick="setPerson('m')">💙 Moritz</button>
+  </div>
+
+  <div class="mode-toggle" title="Was wird beim Klicken markiert?">
+    <button class="mode-btn urlaub active" id="modeU" onclick="setMode('u')">☀️ Urlaub</button>
+    <button class="mode-btn gleit"         id="modeG" onclick="setMode('g')">⏱ Gleittag</button>
+  </div>
+
+  <div class="state-wrap">
+    <span class="state-label">Bundesland</span>
+    <select id="stateSelect" onchange="setState(this.value)">
+      <option value="">— bundesweit —</option>
+      <option value="BW">Baden-Württemberg</option>
+      <option value="BY">Bayern</option>
+      <option value="BE">Berlin</option>
+      <option value="BB">Brandenburg</option>
+      <option value="HB">Bremen</option>
+      <option value="HH">Hamburg</option>
+      <option value="HE" selected>Hessen</option>
+      <option value="MV">Mecklenburg-Vorpommern</option>
+      <option value="NI">Niedersachsen</option>
+      <option value="NW">Nordrhein-Westfalen</option>
+      <option value="RP">Rheinland-Pfalz</option>
+      <option value="SL">Saarland</option>
+      <option value="SN">Sachsen</option>
+      <option value="ST">Sachsen-Anhalt</option>
+      <option value="SH">Schleswig-Holstein</option>
+      <option value="TH">Thüringen</option>
+    </select>
+  </div>
+</header>
+
+<div class="cal-wrap">
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat v">
+    <div class="stat-label">
+      💗 Vanessa
+      <button class="carry-btn" id="vCarry" onclick="editCarry('v')" title="Resturlaub aus Vorjahr">+ Vorjahr</button>
+      <button class="carry-btn" id="vGleit" onclick="editGleit('v')" title="Gleittage-Kontingent">⏱ Gleit</button>
+    </div>
+    <div class="stat-num" id="vNum">36</div>
+    <div class="stat-sub" id="vSub">von 36 Arbeitstagen übrig</div>
+    <div class="stat-track"><div class="stat-fill" id="vBar" style="width:100%"></div></div>
+    <div class="gleit-status" id="vGleitStatus" style="display:none">⏱ <span class="gd" id="vGleitTxt"></span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stat b">
+    <div class="stat-label">✈️ Gemeinsam</div>
+    <div class="stat-num" id="bNum">0</div>
+    <div class="stat-sub">Arbeitstage zusammen</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stat m">
+    <div class="stat-label">
+      💙 Moritz
+      <button class="carry-btn" id="mCarry" onclick="editCarry('m')" title="Resturlaub aus Vorjahr">+ Vorjahr</button>
+      <button class="carry-btn" id="mGleit" onclick="editGleit('m')" title="Gleittage-Kontingent">⏱ Gleit</button>
+    </div>
+    <div class="stat-num" id="mNum">27</div>
+    <div class="stat-sub" id="mSub">von 27 Arbeitstagen übrig</div>
+    <div class="stat-track"><div class="stat-fill" id="mBar" style="width:100%"></div></div>
+    <div class="gleit-status" id="mGleitStatus" style="display:none">⏱ <span class="gd" id="mGleitTxt"></span></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-dot"></div>
+    = Feiertag (zählt nicht)
+  </div>
+</div>
+
+<div id="toast">Gespeichert ✓</div>
+<button class="reset-btn" title="Jahr zurücksetzen" onclick="resetYear()">🗑️</button>
+
+<script>
+  const TOTAL  = { v: 36, m: 27 };
+  const MONTHS = ['Januar','Februar','März','April','Mai','Juni',
+                  'Juli','August','September','Oktober','November','Dezember'];
+  const WD     = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+  // ── State ─────────────────────────────────────────────────────
+  let year     = 2026;
+  let person   = 'v';
+  let state    = 'HE';
+  let viewMode = 'grid';   // 'grid' | 'linear'
+  let markMode = 'u';      // 'u' = Urlaub, 'g' = Gleittag
+  let marks    = {};       // Urlaub:    dateKey → Set{persons}
+  let gleit    = {};       // Gleittage: dateKey → Set{persons}
+  let anchor   = null;
+
+  let dragging   = false;
+  let dragAction = 'add';
+
+  let holidays   = new Map();
+
+  // Vorjahres-Übertrag und Gleittage-Kontingent: jeweils { '2026': { v: 5, m: 3 } }
+  let carryover  = {};
+  let gleitDays  = {};
+
+  // Labels pro Tag (Block-Beschriftung): { '2026-04-13': 'Italien', ... }
+  let labels     = {};
+
+  function getCarry(p) { return (carryover[year] && carryover[year][p]) || 0; }
+  function getTotal(p) { return TOTAL[p] + getCarry(p); }
+  function getGleitTotal(p) { return (gleitDays[year] && gleitDays[year][p]) || 0; }
+  function hasMarkOfType(key, p, type) {
+    const src = type === 'u' ? marks : gleit;
+    return !!(src[key] && src[key].has(p));
+  }
+  function hasAnyMark(key, p) {
+    return hasMarkOfType(key, p, 'u') || hasMarkOfType(key, p, 'g');
+  }
+
+  // ── Public Holidays ───────────────────────────────────────────
+  function getEaster(y) {
+    const a = y % 19, b = Math.floor(y/100), c = y%100;
+    const d = Math.floor(b/4), e = b%4, f = Math.floor((b+8)/25);
+    const g = Math.floor((b-f+1)/3);
+    const h = (19*a + b - d - g + 15) % 30;
+    const i = Math.floor(c/4), k = c%4;
+    const l = (32 + 2*e + 2*i - h - k) % 7;
+    const m = Math.floor((a + 11*h + 22*l) / 451);
+    const mo = Math.floor((h+l-7*m+114)/31) - 1;
+    const dy = (h+l-7*m+114)%31 + 1;
+    return new Date(y, mo, dy);
+  }
+
+  function easterPlus(easter, n) {
+    const d = new Date(easter);
+    d.setDate(d.getDate() + n);
+    return fmtD(d);
+  }
+
+  function fmtD(d) {
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function buildHolidays(y, st) {
+    const h = new Map();
+    const easter = getEaster(y);
+    const Y = String(y);
+
+    // ── Bundesweite Feiertage ────────────────────────────────
+    h.set(`${Y}-01-01`, 'Neujahr');
+    h.set(easterPlus(easter, -2), 'Karfreitag');
+    h.set(easterPlus(easter,  1), 'Ostermontag');
+    h.set(`${Y}-05-01`, 'Tag der Arbeit');
+    h.set(easterPlus(easter, 39), 'Christi Himmelfahrt');
+    h.set(easterPlus(easter, 50), 'Pfingstmontag');
+    h.set(`${Y}-10-03`, 'Tag der deutschen Einheit');
+    h.set(`${Y}-12-25`, '1. Weihnachtstag');
+    h.set(`${Y}-12-26`, '2. Weihnachtstag');
+
+    if (!st) return h;
+
+    // ── Landesspezifische Feiertage ──────────────────────────
+
+    // Heilige Drei Könige – BW, BY, ST
+    if (['BW','BY','ST'].includes(st))
+      h.set(`${Y}-01-06`, 'Heilige Drei Könige');
+
+    // Internationaler Frauentag – BE, MV
+    if (['BE','MV'].includes(st))
+      h.set(`${Y}-03-08`, 'Internationaler Frauentag');
+
+    // Ostersonntag – BB
+    if (st === 'BB')
+      h.set(easterPlus(easter, 0), 'Ostersonntag');
+
+    // Pfingstsonntag – BB
+    if (st === 'BB')
+      h.set(easterPlus(easter, 49), 'Pfingstsonntag');
+
+    // Fronleichnam – BW, BY, HE, NW, RP, SL
+    if (['BW','BY','HE','NW','RP','SL'].includes(st))
+      h.set(easterPlus(easter, 60), 'Fronleichnam');
+
+    // Mariä Himmelfahrt – BY, SL
+    if (['BY','SL'].includes(st))
+      h.set(`${Y}-08-15`, 'Mariä Himmelfahrt');
+
+    // Weltkindertag – TH
+    if (st === 'TH')
+      h.set(`${Y}-09-20`, 'Weltkindertag');
+
+    // Reformationstag – BB, HB, HH, MV, NI, SN, ST, SH, TH
+    if (['BB','HB','HH','MV','NI','SN','ST','SH','TH'].includes(st))
+      h.set(`${Y}-10-31`, 'Reformationstag');
+
+    // Allerheiligen – BW, BY, NW, RP, SL
+    if (['BW','BY','NW','RP','SL'].includes(st))
+      h.set(`${Y}-11-01`, 'Allerheiligen');
+
+    // Buß- und Bettag – SN (Mittwoch vor Totensonntag)
+    if (st === 'SN') {
+      // Totensonntag = letzter Sonntag im November
+      const ts = new Date(y, 10, 30);
+      while (ts.getDay() !== 0) ts.setDate(ts.getDate() - 1);
+      ts.setDate(ts.getDate() - 4); // 4 Tage vorher = Mittwoch
+      h.set(fmtD(ts), 'Buß- und Bettag');
+    }
+
+    return h;
+  }
+
+  function isWorkday(key) {
+    const d = new Date(key);
+    const dow = d.getDay();
+    if (dow === 0 || dow === 6) return false;  // Wochenende
+    if (holidays.has(key))     return false;  // Feiertag
+    return true;
+  }
+
+  // ── Persistence ───────────────────────────────────────────────
+  function save() {
+    const u = {}, g = {};
+    for (const [k, s] of Object.entries(marks)) u[k] = [...s];
+    for (const [k, s] of Object.entries(gleit)) g[k] = [...s];
+    localStorage.setItem('up_marks_' + year, JSON.stringify(u));
+    localStorage.setItem('up_gleit_' + year, JSON.stringify(g));
+    localStorage.setItem('up_labels_' + year, JSON.stringify(labels));
+    localStorage.setItem('up_person',     person);
+    localStorage.setItem('up_year',       String(year));
+    localStorage.setItem('up_state',      state);
+    localStorage.setItem('up_carryover',  JSON.stringify(carryover));
+    localStorage.setItem('up_gleitdays',  JSON.stringify(gleitDays));
+    localStorage.setItem('up_view',       viewMode);
+    localStorage.setItem('up_mode',       markMode);
+    flashToast();
+  }
+
+  function load() {
+    year      = parseInt(localStorage.getItem('up_year')   || '2026');
+    person    = localStorage.getItem('up_person') || 'v';
+    state     = localStorage.getItem('up_state')  || 'HE';
+    viewMode  = localStorage.getItem('up_view')   || 'grid';
+    markMode  = localStorage.getItem('up_mode')   || 'u';
+    try { carryover = JSON.parse(localStorage.getItem('up_carryover') || '{}'); }
+    catch (e) { carryover = {}; }
+    try { gleitDays = JSON.parse(localStorage.getItem('up_gleitdays') || '{}'); }
+    catch (e) { gleitDays = {}; }
+    loadYear(year);
+  }
+
+  function loadYear(y) {
+    marks    = {};
+    gleit    = {};
+    labels   = {};
+    holidays = buildHolidays(y, state);
+    const ru = localStorage.getItem('up_marks_'  + y);
+    const rg = localStorage.getItem('up_gleit_'  + y);
+    const rl = localStorage.getItem('up_labels_' + y);
+    if (ru) for (const [k, arr] of Object.entries(JSON.parse(ru))) marks[k] = new Set(arr);
+    if (rg) for (const [k, arr] of Object.entries(JSON.parse(rg))) gleit[k] = new Set(arr);
+    if (rl) try { labels = JSON.parse(rl) || {}; } catch(e) {}
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────
+  let toastTimer = null;
+  function flashToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1200);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function dateKey(y, mo, d) { return `${y}-${pad(mo+1)}-${pad(d)}`; }
+
+  function todayKey() {
+    const t = new Date();
+    return dateKey(t.getFullYear(), t.getMonth(), t.getDate());
+  }
+
+  function getDateRange(a, b) {
+    const dates = [];
+    const start = new Date(a < b ? a : b);
+    const end   = new Date(a < b ? b : a);
+    while (start <= end) {
+      dates.push(dateKey(start.getFullYear(), start.getMonth(), start.getDate()));
+      start.setDate(start.getDate() + 1);
+    }
+    return dates;
+  }
+
+  // ── Mark helpers ──────────────────────────────────────────────
+  function applyToKey(key, action) {
+    const tgt = markMode === 'u' ? marks : gleit;
+    const oth = markMode === 'u' ? gleit : marks;
+
+    if (action === 'add') {
+      // Aus dem anderen Topf entfernen (gegenseitiger Ausschluss)
+      if (oth[key] && oth[key].has(person)) {
+        oth[key].delete(person);
+        if (oth[key].size === 0) delete oth[key];
+      }
+      if (!tgt[key]) tgt[key] = new Set();
+      tgt[key].add(person);
+    } else {
+      if (tgt[key]) {
+        tgt[key].delete(person);
+        if (tgt[key].size === 0) delete tgt[key];
+      }
+    }
+  }
+
+  // Helpers für Datum-Nachbarn
+  function shiftKey(key, days) {
+    const d = new Date(key);
+    d.setDate(d.getDate() + days);
+    return dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  function weekdayMonZero(key) {
+    return (new Date(key).getDay() + 6) % 7; // 0=Mo, 6=So
+  }
+  function monthOf(key) { return parseInt(key.slice(5,7)) - 1; }
+
+  // Block-Klasse: 'block-start', 'block-mid', 'block-end' oder '' (Einzel-Tag oder leer)
+  // viewMode bestimmt Nachbar-Richtung: 'grid' = gleiche Kalenderwoche, 'linear' = gleicher Monat
+  function getBlockClass(key) {
+    const cls = getMarkClass(key);
+    if (!cls) return '';
+
+    let prevKey = null, nextKey = null;
+    if (viewMode === 'grid') {
+      const wd = weekdayMonZero(key);
+      if (wd > 0) prevKey = shiftKey(key, -1);
+      if (wd < 6) nextKey = shiftKey(key, +1);
+    } else {
+      // linear: same month
+      const mo = monthOf(key);
+      const prev = shiftKey(key, -1);
+      const next = shiftKey(key, +1);
+      if (monthOf(prev) === mo) prevKey = prev;
+      if (monthOf(next) === mo) nextKey = next;
+    }
+
+    const prevSame = prevKey && getMarkClass(prevKey) === cls;
+    const nextSame = nextKey && getMarkClass(nextKey) === cls;
+
+    if (prevSame && nextSame) return 'block-mid';
+    if (prevSame)             return 'block-end';
+    if (nextSame)             return 'block-start';
+    return '';
+  }
+
+  // Alle Tage eines Blocks finden (zusammenhängend mit gleicher Mark-Klasse, kalenderbasiert)
+  function getBlockKeys(key) {
+    const cls = getMarkClass(key);
+    if (!cls) return [];
+    const result = [key];
+    // backward
+    let k = key;
+    while (true) {
+      const prev = shiftKey(k, -1);
+      if (getMarkClass(prev) === cls) { result.unshift(prev); k = prev; }
+      else break;
+    }
+    // forward
+    k = key;
+    while (true) {
+      const next = shiftKey(k, +1);
+      if (getMarkClass(next) === cls) { result.push(next); k = next; }
+      else break;
+    }
+    return result;
+  }
+
+  function editLabel(key) {
+    if (!getMarkClass(key)) return;
+    const block = getBlockKeys(key);
+    const current = labels[key] || '';
+    const val = prompt(
+      `Beschriftung für diesen Block (${block.length} Tag${block.length === 1 ? '' : 'e'}):\n` +
+      `z.B. "Italien", "Familienbesuch", ...\n` +
+      `(leer lassen zum Entfernen)`,
+      current
+    );
+    if (val === null) return;
+    const trimmed = val.trim();
+    if (trimmed) {
+      block.forEach(k => labels[k] = trimmed);
+    } else {
+      block.forEach(k => delete labels[k]);
+    }
+    save();
+    render();
+  }
+
+  function getMarkClass(key) {
+    const vU = hasMarkOfType(key, 'v', 'u');
+    const mU = hasMarkOfType(key, 'm', 'u');
+    const vG = hasMarkOfType(key, 'v', 'g');
+    const mG = hasMarkOfType(key, 'm', 'g');
+    const hasV = vU || vG;
+    const hasM = mU || mG;
+
+    if (hasV && hasM) {
+      // Beide: wenn beide Gleit, dann both-gleit, sonst normal both
+      if (vG && mG) return 'both-gleit';
+      return 'both';
+    }
+    if (hasV) return vG ? 'v-gleit' : 'v-only';
+    if (hasM) return mG ? 'm-gleit' : 'm-only';
+    return null;
+  }
+
+  function refreshDayEl(key) {
+    const el = document.querySelector(`[data-date="${key}"]`);
+    if (!el) return;
+    el.classList.remove(
+      'v-only','m-only','both','v-gleit','m-gleit','both-gleit',
+      'we','block-start','block-mid','block-end','has-label'
+    );
+    const cls = getMarkClass(key);
+    if (cls) {
+      el.classList.add(cls);
+      const bcls = getBlockClass(key);
+      if (bcls) el.classList.add(bcls);
+      if (labels[key]) el.classList.add('has-label');
+    } else {
+      const dow = new Date(key).getDay();
+      if (dow === 0 || dow === 6) el.classList.add('we');
+    }
+
+    // Label-Text in der Zelle aktualisieren
+    const labelEl = el.querySelector('.block-label');
+    if (labelEl) {
+      if (labels[key]) {
+        labelEl.textContent = labels[key];
+        labelEl.classList.remove('placeholder');
+      } else {
+        labelEl.textContent = '+ Beschriften';
+        labelEl.classList.add('placeholder');
+      }
+    }
+  }
+
+  // Refresht die Zelle UND die direkten Datums-Nachbarn (für Block-Übergänge)
+  function refreshDayWithNeighbors(key) {
+    refreshDayEl(shiftKey(key, -1));
+    refreshDayEl(key);
+    refreshDayEl(shiftKey(key, +1));
+  }
+
+  // ── Interactions ──────────────────────────────────────────────
+  function setPerson(p) {
+    person = p;
+    document.getElementById('btnV').classList.toggle('active', p === 'v');
+    document.getElementById('btnM').classList.toggle('active', p === 'm');
+    save();
+  }
+
+  function setState(st) {
+    state    = st;
+    holidays = buildHolidays(year, state);
+    save();
+    render();
+    updateStats();
+  }
+
+  function editCarry(p) {
+    const name = p === 'v' ? 'Vanessa' : 'Moritz';
+    const cur  = getCarry(p);
+    const val  = prompt(
+      `Resturlaub aus dem Vorjahr für ${name} (${year}):\n` +
+      `(z.B. 15 = 15 Tage werden zusätzlich angerechnet)`,
+      cur
+    );
+    if (val === null) return;          // cancelled
+    const n = Math.max(0, parseInt(val) || 0);
+    if (!carryover[year]) carryover[year] = {};
+    carryover[year][p] = n;
+    if (n === 0) delete carryover[year][p];
+    save();
+    updateStats();
+    updateCarryButtons();
+  }
+
+  function updateCarryButtons() {
+    [['v','vCarry'], ['m','mCarry']].forEach(([p, id]) => {
+      const btn = document.getElementById(id);
+      const n   = getCarry(p);
+      btn.textContent = n > 0 ? `+${n} aus Vorjahr` : '+ Vorjahr';
+      btn.classList.toggle('has-value', n > 0);
+    });
+    [['v','vGleit'], ['m','mGleit']].forEach(([p, id]) => {
+      const btn = document.getElementById(id);
+      const n   = getGleitTotal(p);
+      btn.textContent = n > 0 ? `⏱ ${n} Gleit` : '⏱ Gleit';
+      btn.classList.toggle('has-value', n > 0);
+    });
+  }
+
+  function setMode(m) {
+    markMode = m;
+    document.getElementById('modeU').classList.toggle('active', m === 'u');
+    document.getElementById('modeG').classList.toggle('active', m === 'g');
+    save();
+  }
+
+  function editGleit(p) {
+    const name = p === 'v' ? 'Vanessa' : 'Moritz';
+    const cur  = getGleitTotal(p);
+    const val  = prompt(
+      `Gleittage-Kontingent für ${name} (${year}):\n` +
+      `(z.B. 8 = 8 Gleittage stehen zur Verfügung)`,
+      cur
+    );
+    if (val === null) return;
+    const n = Math.max(0, parseInt(val) || 0);
+    if (!gleitDays[year]) gleitDays[year] = {};
+    gleitDays[year][p] = n;
+    if (n === 0) delete gleitDays[year][p];
+    save();
+    updateStats();
+    updateCarryButtons();
+  }
+
+  function onDayMouseDown(key, e) {
+    e.preventDefault();
+
+    if (e.shiftKey && anchor && anchor !== key) {
+      // Shift+Klick: Bereich markieren
+      const range = getDateRange(anchor, key);
+      range.forEach(k => applyToKey(k, 'add'));
+      anchor = key;
+      save(); render(); updateStats();
+      return;
+    }
+
+    // Drag starten
+    dragging = true;
+    dragAction = hasMarkOfType(key, person, markMode) ? 'remove' : 'add';
+    applyToKey(key, dragAction);
+    refreshDayWithNeighbors(key);
+    anchor = key;
+  }
+
+  function onDayMouseEnter(key) {
+    if (!dragging) return;
+    applyToKey(key, dragAction);
+    refreshDayWithNeighbors(key);
+  }
+
+  document.addEventListener('mouseup', () => {
+    if (dragging) { dragging = false; save(); render(); updateStats(); }
+  });
+  document.addEventListener('mouseleave', () => {
+    if (dragging) { dragging = false; save(); render(); updateStats(); }
+  });
+
+  // ── Touch Support (iPhone / iPad) ─────────────────────────────
+  // Tap = Markieren, Wischen = Drag, Long-Press = Label
+  let touchLongPressTimer = null;
+  let touchStartKey       = null;
+  let touchMoved          = false;
+  let touchAppliedOnce    = false;
+  let touchLongPressFired = false;
+
+  function keyFromTouch(touch) {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return null;
+    const dayEl = el.closest('[data-date]');
+    return dayEl ? dayEl.dataset.date : null;
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    if (e.target.closest && e.target.closest('.block-label')) return;  // Label hat eigenen Handler
+    if (e.target.closest && e.target.closest('button, select, input')) return;
+
+    const key = keyFromTouch(e.touches[0]);
+    if (!key) return;
+
+    touchStartKey       = key;
+    touchMoved          = false;
+    touchAppliedOnce    = false;
+    touchLongPressFired = false;
+    dragging            = false;
+
+    // Aktion vorbestimmen (für später)
+    dragAction = hasMarkOfType(key, person, markMode) ? 'remove' : 'add';
+    anchor     = key;
+
+    // Long-Press Timer: 450ms ohne Bewegung → Label-Editor
+    clearTimeout(touchLongPressTimer);
+    touchLongPressTimer = setTimeout(() => {
+      if (touchMoved) return;
+      touchLongPressFired = true;
+      if (getMarkClass(touchStartKey)) {
+        if (navigator.vibrate) navigator.vibrate(30);
+        editLabel(touchStartKey);
+      }
+      touchStartKey = null;
+    }, 450);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!touchStartKey || e.touches.length !== 1) return;
+
+    const key = keyFromTouch(e.touches[0]);
+    if (!key) return;
+
+    // Erste Bewegung: Drag starten und Start-Zelle markieren
+    if (!touchMoved) {
+      touchMoved = true;
+      clearTimeout(touchLongPressTimer);
+      dragging         = true;
+      touchAppliedOnce = true;
+      applyToKey(touchStartKey, dragAction);
+      refreshDayWithNeighbors(touchStartKey);
+    }
+
+    if (dragging) e.preventDefault();   // Scroll verhindern während Drag
+
+    if (key !== touchStartKey) {
+      applyToKey(key, dragAction);
+      refreshDayWithNeighbors(key);
+      touchStartKey = key;
+    }
+  }, { passive: false });
+
+  function endTouch() {
+    clearTimeout(touchLongPressTimer);
+    if (touchLongPressFired) {
+      // Label-Editor wurde geöffnet, kein Toggle
+      touchStartKey = null;
+      return;
+    }
+    if (dragging) {
+      dragging = false;
+      save(); render(); updateStats();
+    } else if (touchStartKey && !touchAppliedOnce) {
+      // Reiner Tap → toggle die Zelle
+      applyToKey(touchStartKey, dragAction);
+      save(); render(); updateStats();
+    }
+    touchStartKey = null;
+  }
+  document.addEventListener('touchend',    endTouch);
+  document.addEventListener('touchcancel', endTouch);
+
+  function resetYear() {
+    if (!confirm(`Alle Markierungen (Urlaub + Gleittage) für ${year} löschen?`)) return;
+    marks = {};
+    gleit = {};
+    save(); render(); updateStats();
+  }
+
+  // ── Render router ─────────────────────────────────────────────
+  function render() {
+    if (viewMode === 'linear') renderLinear();
+    else                       renderGrid();
+  }
+
+  function setView(mode) {
+    viewMode = mode;
+    document.getElementById('vtGrid').classList.toggle('active',   mode === 'grid');
+    document.getElementById('vtLinear').classList.toggle('active', mode === 'linear');
+    save();
+    render();
+  }
+
+  // ── Linear (Jahrestabelle) ────────────────────────────────────
+  function renderLinear() {
+    const grid  = document.getElementById('calGrid');
+    const today = todayKey();
+    grid.className = 'cal-grid view-linear';
+    grid.innerHTML = '';
+
+    // Header row: corner + 12 month names + badges
+    grid.appendChild(mk('div', 'l-corner'));
+    for (let mo = 0; mo < 12; mo++) {
+      const lh = mk('div', 'l-month');
+      lh.dataset.month = mo;
+      lh.textContent = MONTHS[mo].substring(0, 3);
+
+      const bdgs = mk('div', 'l-badges');
+      const vC = countMonth(mo, 'v');
+      const mC = countMonth(mo, 'm');
+      const bv = mk('div', 'mbadge v'); bv.textContent = vC; bv.dataset.badge = 'v';
+      const bm = mk('div', 'mbadge m'); bm.textContent = mC; bm.dataset.badge = 'm';
+      if (vC) bv.classList.add('show');
+      if (mC) bm.classList.add('show');
+      bdgs.append(bv, bm);
+      lh.appendChild(bdgs);
+      grid.appendChild(lh);
+    }
+
+    // 31 rows
+    for (let d = 1; d <= 31; d++) {
+      const dn = mk('div', 'l-daynum');
+      dn.textContent = d;
+      grid.appendChild(dn);
+
+      for (let mo = 0; mo < 12; mo++) {
+        const daysInMo = new Date(year, mo + 1, 0).getDate();
+        if (d > daysInMo) {
+          grid.appendChild(mk('div', 'day l-invalid empty'));
+          continue;
+        }
+
+        const key    = dateKey(year, mo, d);
+        const dow    = new Date(year, mo, d).getDay();
+        const isWE   = dow === 0 || dow === 6;
+        const isHol  = holidays.has(key);
+        const mc     = getMarkClass(key);
+        const bcls   = mc ? getBlockClass(key) : '';
+        const hasLbl = !!labels[key];
+
+        let cls = 'day';
+        if (isWE && !mc)   cls += ' we';
+        if (key === today) cls += ' today';
+        if (mc)            cls += ' ' + mc;
+        if (bcls)          cls += ' ' + bcls;
+        if (hasLbl)        cls += ' has-label';
+        if (isHol)         cls += ' holiday';
+
+        const cell = mk('div', cls);
+        cell.dataset.date = key;
+        const titleParts = [];
+        if (isHol)  titleParts.push(holidays.get(key));
+        if (hasLbl) titleParts.push(labels[key]);
+        if (titleParts.length) cell.title = titleParts.join(' – ');
+
+        const sp = mk('span', 'wd-letter');
+        sp.textContent = WD[(dow + 6) % 7];   // Mo, Di, ..., So
+        cell.appendChild(sp);
+
+        // Bridge nach unten
+        cell.appendChild(mk('div', 'block-bridge'));
+
+        // Label
+        if (mc) {
+          const labelEl = mk('div', 'block-label');
+          if (hasLbl) labelEl.textContent = labels[key];
+          else { labelEl.textContent = '+ Beschriften'; labelEl.classList.add('placeholder'); }
+          labelEl.addEventListener('click',    ev => { ev.stopPropagation(); ev.preventDefault(); editLabel(key); });
+          labelEl.addEventListener('mousedown',ev => ev.stopPropagation());
+          cell.appendChild(labelEl);
+        }
+
+        cell.addEventListener('mousedown',   e  => onDayMouseDown(key, e));
+        cell.addEventListener('mouseenter',  () => onDayMouseEnter(key));
+        cell.addEventListener('contextmenu', e  => { e.preventDefault(); if (getMarkClass(key)) editLabel(key); });
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  // ── Grid (4×3 Monatskarten) ───────────────────────────────────
+  function renderGrid() {
+    const grid  = document.getElementById('calGrid');
+    const today = todayKey();
+    grid.className = 'cal-grid view-grid';
+    grid.innerHTML = '';
+
+    for (let mo = 0; mo < 12; mo++) {
+      const vC = countMonth(mo, 'v');
+      const mC = countMonth(mo, 'm');
+
+      const card = mk('div', 'month-card');
+      card.dataset.month = mo;
+
+      // Month header
+      const hdr  = mk('div', 'month-header');
+      const nm   = mk('div', 'month-name');  nm.textContent = MONTHS[mo];
+      const bdgs = mk('div', 'month-badges');
+      const bv   = mk('div', 'mbadge v');   bv.textContent = vC; bv.dataset.badge = 'v';
+      const bm   = mk('div', 'mbadge m');   bm.textContent = mC; bm.dataset.badge = 'm';
+      if (vC) bv.classList.add('show');
+      if (mC) bm.classList.add('show');
+      bdgs.append(bv, bm); hdr.append(nm, bdgs);
+      card.appendChild(hdr);
+
+      // Weekday labels
+      const wdRow = mk('div', 'wdays');
+      WD.forEach((d, i) => {
+        const w = mk('div', 'wd'); w.textContent = d;
+        if (i >= 5) w.classList.add('we');
+        wdRow.appendChild(w);
+      });
+      card.appendChild(wdRow);
+
+      // Day cells
+      const dGrid = mk('div', 'days-grid');
+      const first = new Date(year, mo, 1);
+      let offset  = first.getDay() - 1;
+      if (offset < 0) offset = 6;
+
+      for (let i = 0; i < offset; i++)
+        dGrid.appendChild(mk('div', 'day empty'));
+
+      const daysInMo = new Date(year, mo + 1, 0).getDate();
+
+      for (let d = 1; d <= daysInMo; d++) {
+        const key   = dateKey(year, mo, d);
+        const dow   = new Date(year, mo, d).getDay();
+        const isWE  = dow === 0 || dow === 6;
+        const isHol = holidays.has(key);
+        const mc    = getMarkClass(key);
+        const bcls  = mc ? getBlockClass(key) : '';
+        const hasLbl = !!labels[key];
+
+        let cls = 'day';
+        if (isWE && !mc)   cls += ' we';
+        if (key === today) cls += ' today';
+        if (mc)            cls += ' ' + mc;
+        if (bcls)          cls += ' ' + bcls;
+        if (hasLbl)        cls += ' has-label';
+        if (isHol)         cls += ' holiday';
+
+        const dayEl = mk('div', cls);
+        dayEl.dataset.date = key;
+
+        // Tooltip: Feiertag + ggf. Label
+        const titleParts = [];
+        if (isHol)   titleParts.push(holidays.get(key));
+        if (hasLbl)  titleParts.push(labels[key]);
+        if (titleParts.length) dayEl.title = titleParts.join(' – ');
+
+        const sp = mk('span'); sp.textContent = d;
+        dayEl.appendChild(sp);
+
+        // Bridge zum nächsten Tag im Block
+        dayEl.appendChild(mk('div', 'block-bridge'));
+
+        // Label (nur sichtbar bei block-start oder einzeln markiertem Tag)
+        if (mc) {
+          const labelEl = mk('div', 'block-label');
+          if (hasLbl) labelEl.textContent = labels[key];
+          else { labelEl.textContent = '+ Beschriften'; labelEl.classList.add('placeholder'); }
+          labelEl.addEventListener('click',    ev => { ev.stopPropagation(); ev.preventDefault(); editLabel(key); });
+          labelEl.addEventListener('mousedown',ev => ev.stopPropagation());
+          dayEl.appendChild(labelEl);
+        }
+
+        dayEl.addEventListener('mousedown',   e  => onDayMouseDown(key, e));
+        dayEl.addEventListener('mouseenter',  () => onDayMouseEnter(key));
+        dayEl.addEventListener('contextmenu', e  => { e.preventDefault(); if (getMarkClass(key)) editLabel(key); });
+        dGrid.appendChild(dayEl);
+      }
+      card.appendChild(dGrid);
+      grid.appendChild(card);
+    }
+  }
+
+  // ── Light updates ─────────────────────────────────────────────
+  function updateBadges() {
+    for (let mo = 0; mo < 12; mo++) {
+      const card = document.querySelector(`[data-month="${mo}"]`);
+      if (!card) continue;
+      const bv = card.querySelector('[data-badge="v"]');
+      const bm = card.querySelector('[data-badge="m"]');
+      const vC = countMonth(mo, 'v');
+      const mC = countMonth(mo, 'm');
+      if (bv) { bv.textContent = vC; bv.classList.toggle('show', vC > 0); }
+      if (bm) { bm.textContent = mC; bm.classList.toggle('show', mC > 0); }
+    }
+  }
+
+  function countMonth(mo, p) {
+    // Zählt alle markierten Arbeitstage des Monats (Urlaub + Gleit kombiniert)
+    const prefix = `${year}-${pad(mo+1)}-`;
+    let n = 0;
+    const seen = new Set();
+    for (const [k, s] of Object.entries(marks))
+      if (k.startsWith(prefix) && s.has(p) && isWorkday(k)) { n++; seen.add(k); }
+    for (const [k, s] of Object.entries(gleit))
+      if (k.startsWith(prefix) && s.has(p) && isWorkday(k) && !seen.has(k)) n++;
+    return n;
+  }
+
+  function updateStats() {
+    // Urlaub-Tage zählen (nur Arbeitstage)
+    let vU = 0, mU = 0;
+    for (const [k, s] of Object.entries(marks)) {
+      if (!isWorkday(k)) continue;
+      if (s.has('v')) vU++;
+      if (s.has('m')) mU++;
+    }
+
+    // Gleittage zählen (nur Arbeitstage)
+    let vG = 0, mG = 0;
+    for (const [k, s] of Object.entries(gleit)) {
+      if (!isWorkday(k)) continue;
+      if (s.has('v')) vG++;
+      if (s.has('m')) mG++;
+    }
+
+    // Gemeinsame Tage (Urlaub ODER Gleit auf beiden Seiten)
+    let bC = 0;
+    const allKeys = new Set([...Object.keys(marks), ...Object.keys(gleit)]);
+    for (const k of allKeys) {
+      if (!isWorkday(k)) continue;
+      const hV = (marks[k] && marks[k].has('v')) || (gleit[k] && gleit[k].has('v'));
+      const hM = (marks[k] && marks[k].has('m')) || (gleit[k] && gleit[k].has('m'));
+      if (hV && hM) bC++;
+    }
+
+    // ── Urlaub-Anzeige ─────────────────────────────────────
+    const vTot = getTotal('v');
+    const mTot = getTotal('m');
+    const vCar = getCarry('v');
+    const mCar = getCarry('m');
+    const vR = vTot - vU;
+    const mR = mTot - mU;
+
+    document.getElementById('vNum').textContent = vR;
+    document.getElementById('mNum').textContent = mR;
+    document.getElementById('bNum').textContent = bC;
+
+    const vSub = document.getElementById('vSub');
+    const mSub = document.getElementById('mSub');
+    const vBreakdown = vCar > 0 ? ` (${TOTAL.v}+${vCar})` : '';
+    const mBreakdown = mCar > 0 ? ` (${TOTAL.m}+${mCar})` : '';
+    vSub.textContent = vR < 0 ? `${Math.abs(vR)} Tage zu viel!` : `von ${vTot}${vBreakdown} übrig`;
+    mSub.textContent = mR < 0 ? `${Math.abs(mR)} Tage zu viel!` : `von ${mTot}${mBreakdown} übrig`;
+    vSub.className = 'stat-sub' + (vR < 0 ? ' warn' : '');
+    mSub.className = 'stat-sub' + (mR < 0 ? ' warn' : '');
+
+    document.getElementById('vBar').style.width = `${Math.max(0, vR/vTot*100)}%`;
+    document.getElementById('mBar').style.width = `${Math.max(0, mR/mTot*100)}%`;
+
+    // ── Gleit-Anzeige ──────────────────────────────────────
+    updateGleitStatus('v', vG);
+    updateGleitStatus('m', mG);
+  }
+
+  function updateGleitStatus(p, used) {
+    const tot     = getGleitTotal(p);
+    const statusEl = document.getElementById(p + 'GleitStatus');
+    const txtEl    = document.getElementById(p + 'GleitTxt');
+    if (tot === 0 && used === 0) {
+      statusEl.style.display = 'none';
+      return;
+    }
+    statusEl.style.display = 'flex';
+    const rem = tot - used;
+    if (tot === 0) {
+      txtEl.textContent = `${used} Gleittage genutzt (kein Kontingent gesetzt)`;
+      statusEl.classList.add('warn');
+    } else if (rem < 0) {
+      txtEl.textContent = `${Math.abs(rem)} Gleittag${Math.abs(rem) === 1 ? '' : 'e'} zu viel!`;
+      statusEl.classList.add('warn');
+    } else {
+      txtEl.textContent = `${rem} von ${tot} Gleittagen übrig`;
+      statusEl.classList.remove('warn');
+    }
+  }
+
+  // ── Year navigation ───────────────────────────────────────────
+  document.getElementById('btnPrev').addEventListener('click', () => {
+    year--;
+    loadYear(year);
+    document.getElementById('yearDisplay').textContent = year;
+    render(); updateStats(); updateCarryButtons();
+  });
+  document.getElementById('btnNext').addEventListener('click', () => {
+    year++;
+    loadYear(year);
+    document.getElementById('yearDisplay').textContent = year;
+    render(); updateStats(); updateCarryButtons();
+  });
+
+  // ── Util ──────────────────────────────────────────────────────
+  function mk(tag, cls) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  load();
+  document.getElementById('yearDisplay').textContent = year;
+  document.getElementById('btnV').classList.toggle('active', person === 'v');
+  document.getElementById('btnM').classList.toggle('active', person === 'm');
+  // Sync state dropdown
+  const sel = document.getElementById('stateSelect');
+  sel.value = state;
+
+  // Sync view toggle
+  document.getElementById('vtGrid').classList.toggle('active',   viewMode === 'grid');
+  document.getElementById('vtLinear').classList.toggle('active', viewMode === 'linear');
+
+  // Sync mode toggle (Urlaub / Gleittag)
+  document.getElementById('modeU').classList.toggle('active', markMode === 'u');
+  document.getElementById('modeG').classList.toggle('active', markMode === 'g');
+
+  render();
+  updateStats();
+  updateCarryButtons();
+</script>
+</body>
+</html>
