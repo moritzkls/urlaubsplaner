@@ -166,20 +166,34 @@ up_labels_{YEAR}        - JSON pro Jahr
 
 ---
 
-## Offen / Geplant: Mobile UX (Stand 2026-05-24)
+## Mobile UX (Stand 2026-05-25)
 
-Die App ist auf Desktop sehr poliert, auf iPhone aber noch verbesserbar:
+Am 2026-05-25 wurde der Mobile-Redesign-Push deployed (Commits `62d9d67`
++ `3ee1757`). Auf Mobile ist der Kalender jetzt **read-only**; Eintragen
+läuft über einen Floating-Action-Button + Bottom-Sheet mit Range-Picker
+(Airbnb-Style). Tap auf einen markierten Tag öffnet ein Action-Sheet
+(Beschriftung, Person ändern, Block löschen). Desktop ist unverändert.
 
-- [ ] **Sync-Panel mobil-optimieren** – aktuell ist es 340 px breit und fest oben rechts. Auf kleinen Screens sollte es als Bottom-Sheet oder zentriert mit Backdrop kommen.
-- [ ] **Stats-Bar kompakter machen** – auf Mobile stapelt sie vertikal und wird sehr hoch. Idee: collapsible / nur Hauptzahl, Details auf Tap.
-- [ ] **Label-Eingabe als Custom-Modal** statt `prompt()` – das native iOS-prompt ist hässlich und cuttet bei langen Beschriftungen.
-- [ ] **Carryover/Gleittage-Eingabe** ebenfalls als Modal statt `prompt()`.
-- [ ] **Toast „Gespeichert ✓"** ist auf Mobile evtl. überflüssig – jedes Antippen flasht.
-- [ ] **Reset-Button** rechts unten kollidiert mit der hohen Stats-Bar.
-- [ ] **Year-Nav** evtl. als Swipe-Geste statt Pfeil-Buttons.
-- [ ] **Touch-Selektion** prüfen: während Drag scrollt Safari manchmal trotzdem mit; `passive: false` checken.
+### Im Push erledigt
+
+- [x] **Sync-Panel** als Bottom-Sheet auf Mobile (CSS-only Override).
+- [x] **Stats-Bar collapsible** – 3 Zahlen kompakt, Tap expandiert mit Carry-/Gleit-Buttons + Bars.
+- [x] **Label-Eingabe als Custom-Modal** (`#labelSheet`, ersetzt `prompt()` auf Mobile).
+- [x] **Reset-Button** auf Mobile `display:none` (kollidiert nicht mehr).
+- [x] **Touch-Selektion**: Drag-Markieren auf Mobile deaktiviert → Scroll bleibt frei, keine ungewollten Markierungen.
+- [x] **Mix-Tage** (V Gleit + M Urlaub bzw. umgekehrt) visuell unterschieden
+      über `.both-vg`/`.both-mg` mit Streifen nur auf der gleit-Hälfte.
+- [x] **Stats-Label** „Arbeitstage zusammen" → „Urlaubstage zusammen".
+- [x] **Header-Cleanup** auf Mobile: Person/Mode/View/Bundesland-Toggles aus dem Header raus (zogen ins AddSheet oder sind auf Desktop beschränkt).
+
+### Noch offen
+
+- [ ] **Carryover/Gleittage-Eingabe** als Sheet statt `prompt()` (analog zum Label-Sheet bauen).
+- [ ] **Toast „Gespeichert ✓"** – auf Mobile jetzt oben statt unten, könnte ggf. ganz weg.
+- [ ] **Year-Nav** als Swipe-Geste statt Pfeil-Buttons.
 - [ ] **Sync-Code teilen** über native Share-API (`navigator.share`) statt nur „Kopieren".
 - [ ] **Initial-Screen** wenn Vanessa erstmals öffnet: kurz erklären „Code von Moritz eingeben oder eigenen starten".
+- [ ] **Bundesland-Auswahl** auf Mobile irgendwo unterbringen (aktuell nur via Desktop änderbar; Hessen ist Default).
 
 ---
 
