@@ -513,6 +513,330 @@
       flex-shrink: 0;
     }
 
+    /* ── BOTTOM SHEETS (Mobile-First) ─────────────────────────── */
+    .sheet-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.42);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+    }
+    .sheet-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--card);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+      z-index: 310;
+      transform: translateY(100%);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .sheet.show { transform: translateY(0); }
+    .sheet-handle {
+      width: 38px; height: 4px;
+      background: #d8d8d8;
+      border-radius: 4px;
+      margin: 10px auto 4px;
+      flex-shrink: 0;
+    }
+    .sheet-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 18px 4px;
+      flex-shrink: 0;
+    }
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .sheet-close {
+      background: none; border: none;
+      width: 32px; height: 32px;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+    }
+    .sheet-close:hover { background: var(--bg); }
+    .sheet-body {
+      padding: 12px 18px 18px;
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet-footer {
+      padding: 12px 18px max(18px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      flex-shrink: 0;
+    }
+    .sheet-section {
+      margin-bottom: 16px;
+    }
+    .sheet-section:last-child { margin-bottom: 0; }
+    .sheet-section-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    /* Pills (Person + Type selectors im Sheet) */
+    .pill-row {
+      display: flex;
+      gap: 8px;
+    }
+    .pill {
+      flex: 1;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      text-align: center;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pill.v { color: var(--v); }
+    .pill.v.active { background: var(--v); border-color: var(--v); color: #fff; }
+    .pill.m { color: var(--m); }
+    .pill.m.active { background: var(--m); border-color: var(--m); color: #fff; }
+    .pill.type.active { background: var(--text); border-color: var(--text); color: #fff; }
+    .pill.type.gleit.active { background: #555; border-color: #555; }
+
+    /* Mini-Range-Picker im AddSheet */
+    .picker-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .picker-nav button {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .picker-nav button:disabled { opacity: .35; cursor: not-allowed; }
+    .picker-month {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .picker-wdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 4px;
+    }
+    .picker-wdays div {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 4px 0;
+    }
+    .picker-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .pd {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .pd.empty { cursor: default; pointer-events: none; }
+    .pd.we { color: #c0c0c0; }
+    .pd.past { color: #d0d0d0; }
+    .pd.holiday { color: #c89030; }
+    .pd.has-mark::before {
+      content: '';
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      bottom: 4px;
+      left: 50%; transform: translateX(-50%);
+    }
+    .pd.has-mark.has-v::before { background: var(--v); }
+    .pd.has-mark.has-m::before { background: var(--m); }
+    .pd.has-mark.has-vm::before {
+      background: linear-gradient(90deg, var(--v) 50%, var(--m) 50%);
+    }
+    .pd.today {
+      outline: 2px solid var(--text);
+      outline-offset: -2px;
+      font-weight: 800;
+    }
+    /* Range-Selection-Styles */
+    .pd.range-start, .pd.range-end {
+      color: #fff;
+      font-weight: 700;
+      background: var(--accent, var(--text));
+    }
+    .pd.range-mid {
+      background: var(--accent-soft, var(--bg));
+      border-radius: 0;
+      color: var(--text);
+    }
+    .pd.range-start { border-radius: 8px 0 0 8px; }
+    .pd.range-end   { border-radius: 0 8px 8px 0; }
+    .pd.range-start.range-end { border-radius: 8px; }
+    /* Accent-Farben per Person/Typ steuern via custom props auf #pickerDays */
+    .picker-days.acc-v { --accent: var(--v); --accent-soft: var(--v-bg); }
+    .picker-days.acc-m { --accent: var(--m); --accent-soft: var(--m-bg); }
+    .picker-days.acc-v-g { --accent: var(--v); --accent-soft: var(--v-bg); }
+    .picker-days.acc-m-g { --accent: var(--m); --accent-soft: var(--m-bg); }
+    .picker-days.acc-v-g .pd.range-start,
+    .picker-days.acc-v-g .pd.range-end,
+    .picker-days.acc-m-g .pd.range-start,
+    .picker-days.acc-m-g .pd.range-end {
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0), rgba(255,255,255,0) 4px,
+        rgba(255,255,255,.5) 4px, rgba(255,255,255,.5) 7px
+      );
+    }
+
+    .range-summary {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: var(--bg);
+      border-radius: 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+    }
+    .range-summary .rs-text { color: var(--text); font-weight: 600; }
+    .range-summary .rs-text.empty { color: var(--muted); font-weight: 500; }
+    .range-summary .rs-count { color: var(--muted); font-size: 12px; }
+
+    .sheet-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--card);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .sheet-input:focus { border-color: var(--text); }
+
+    .sheet-btn {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: opacity .15s, transform .08s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sheet-btn.primary {
+      background: var(--text);
+      color: #fff;
+    }
+    .sheet-btn.primary:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+    .sheet-btn.primary:not(:disabled):active { transform: scale(.98); }
+    .sheet-btn.danger {
+      background: #fee;
+      color: #e74c3c;
+    }
+    .sheet-btn.danger:active { transform: scale(.98); }
+    .sheet-btn.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+
+    /* Action-Sheet (Tap auf markierten Tag) */
+    .action-row {
+      display: block;
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--card);
+      border: none;
+      border-top: 1px solid var(--border);
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-row:first-of-type { border-top: none; }
+    .action-row:active { background: var(--bg); }
+    .action-row.danger { color: #e74c3c; }
+    .action-row .ar-icon {
+      display: inline-block;
+      width: 26px;
+      font-size: 17px;
+    }
+    .action-day-info {
+      padding: 4px 4px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .action-day-info strong { color: var(--text); font-weight: 700; font-size: 15px; display: block; margin-bottom: 2px; }
+
+    /* Floating Action Button (Mobile CTA) */
+    .fab {
+      display: none;  /* nur auf Mobile sichtbar */
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: 28px;
+      padding: 14px 26px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      z-index: 80;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      gap: 8px;
+      align-items: center;
+    }
+    .fab:active { transform: translateX(-50%) scale(.96); }
+    .fab .fab-plus { font-size: 18px; line-height: 1; }
+
     /* ── TOAST ── */
     #toast {
       position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
@@ -678,38 +1002,41 @@
         -webkit-touch-callout: none;
       }
 
-      /* Header: zweizeilig mit Wrap */
+      /* Header: kompakt, eine Zeile wenn möglich */
       header {
         flex-wrap: wrap;
-        padding: 8px 10px;
+        padding: 8px 12px;
         padding-top: max(8px, env(safe-area-inset-top));
         gap: 8px;
         row-gap: 6px;
       }
-      .logo { font-size: 14px; flex: 1; min-width: 0; }
+      /* Logo: nur Icon, kein Text-Block – spart Platz */
+      .logo {
+        font-size: 0;
+        flex: 0 0 auto;
+      }
+      .logo::before {
+        content: '✈️';
+        font-size: 22px;
+      }
       .logo span { display: none; }
 
-      .year-nav button { width: 34px; height: 34px; font-size: 18px; }
-      #yearDisplay { font-size: 15px; min-width: 44px; }
+      .year-nav { flex: 1; justify-content: center; }
+      .year-nav button { width: 36px; height: 36px; font-size: 20px; }
+      #yearDisplay { font-size: 17px; min-width: 52px; }
 
-      .view-toggle { order: 10; flex: 1; justify-content: stretch; }
-      .vt-btn { flex: 1; justify-content: center; padding: 8px 6px; }
-      .vt-btn .vt-label { font-size: 11px; }
+      /* Auf Mobile: Person/Mode-Toggle, View-Toggle und State-Selector aus dem Header.
+         Person+Mode wandert ins AddSheet, State ist selten geändert (nur am Desktop).
+         View-Toggle: Linear-Ansicht ist auf Mobile unbrauchbar → Raster fix. */
+      .person-toggle,
+      .mode-toggle,
+      .view-toggle,
+      .state-wrap { display: none; }
 
-      .person-toggle { order: 20; flex: 1; }
-      .ptbtn { padding: 8px 12px; font-size: 12px; flex: 1; text-align: center; }
-
-      .mode-toggle { order: 30; flex: 1; }
-      .mode-btn { padding: 8px 10px; font-size: 11px; flex: 1; justify-content: center; }
-
-      .state-wrap { order: 40; flex: 1; min-width: 0; }
-      .state-label { display: none; }
-      #stateSelect { flex: 1; width: 100%; padding: 8px; font-size: 13px; }
-
-      /* Kalender: 2 statt 4 Spalten */
+      /* Kalender: 2 statt 4 Spalten, Platz für FAB unten */
       .cal-wrap {
         padding: 10px 10px;
-        padding-bottom: 280px;
+        padding-bottom: 200px; /* Stats + FAB-Höhe */
       }
       .cal-grid.view-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -729,45 +1056,105 @@
       }
       .cal-grid.view-linear .day { min-height: 24px; }
 
-      /* Stats Bar: vertikal stapeln */
+      /* Stats Bar: kompakt collapsible. Im collapsed-State nur die Zahlen. */
       .stats-bar {
         height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: stretch;
+        justify-content: space-around;
+        gap: 0;
+        padding: 8px 10px;
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+        cursor: pointer;
+      }
+      .stats-bar .divider { display: none; }
+      .stat {
+        flex: 1 1 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+        padding: 2px 4px;
+      }
+      .stat-label {
+        font-size: 10px;
+        gap: 4px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .stat-label .carry-btn { display: none; } /* eingeklappt */
+      .stat-num { font-size: 22px; }
+      .stat-sub { font-size: 9px; text-align: center; }
+      .stat-track { width: 60px; height: 3px; }
+      .gleit-status { font-size: 9px; text-align: center; justify-content: center; }
+      .legend { display: none; }
+
+      /* Expanded-State: zeigt Details + Buttons */
+      .stats-bar.expanded {
         flex-direction: column;
         gap: 10px;
         padding: 12px 14px;
         padding-bottom: max(12px, env(safe-area-inset-bottom));
       }
-      .stats-bar .divider { display: none; }
-      .stat {
+      .stats-bar.expanded .stat {
         flex-direction: row;
         align-items: center;
         gap: 12px;
         width: 100%;
-        min-width: 0;
         flex-wrap: wrap;
       }
-      .stat-label { min-width: 0; flex: 1; }
-      .stat-num { font-size: 24px; }
-      .stat-sub { font-size: 10px; }
-      .stat-track { width: 100%; flex-basis: 100%; }
-      .gleit-status { font-size: 10px; flex-basis: 100%; }
+      .stats-bar.expanded .stat-label {
+        min-width: 0;
+        flex: 1;
+        flex-direction: row;
+        text-align: left;
+        font-size: 11px;
+      }
+      .stats-bar.expanded .stat-label .carry-btn { display: inline-flex; }
+      .stats-bar.expanded .stat-num { font-size: 24px; }
+      .stats-bar.expanded .stat-sub { font-size: 10px; text-align: left; }
+      .stats-bar.expanded .stat-track { width: 100%; flex-basis: 100%; }
+      .stats-bar.expanded .gleit-status { font-size: 10px; flex-basis: 100%; justify-content: flex-start; }
 
-      .legend { position: static; transform: none; margin-top: 4px; font-size: 10px; }
-
-      /* Größere Tap-Targets für Buttons */
       .carry-btn { padding: 4px 10px; font-size: 11px; }
 
-      /* Reset & Toast sicherer positionieren */
-      .reset-btn {
-        bottom: max(220px, calc(220px + env(safe-area-inset-bottom)));
-        width: 40px; height: 40px;
-      }
+      /* Reset-Button auf Mobile aus – kommt ins Settings-Sheet */
+      .reset-btn { display: none; }
+
+      /* Toast oben auf Mobile (unten kollidiert mit Stats + FAB) */
       #toast {
-        bottom: max(220px, calc(220px + env(safe-area-inset-bottom)));
+        top: max(60px, calc(60px + env(safe-area-inset-top)));
+        bottom: auto;
       }
+
+      /* FAB aktivieren */
+      .fab {
+        display: inline-flex;
+        bottom: max(110px, calc(110px + env(safe-area-inset-bottom)));
+      }
+      /* Bei expandierter Stats-Bar: FAB ausblenden (kollidiert sonst) */
+      .stats-bar.expanded ~ .fab { display: none; }
 
       /* Labels etwas kleiner auf Mobile */
       .block-label { font-size: 8px; padding: 1px 5px; }
+
+      /* Sync-Panel: Bottom-Sheet statt Floating */
+      .sync-panel {
+        top: auto; right: 0; left: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 22px 22px 0 0;
+        padding: 18px 20px max(20px, env(safe-area-inset-bottom));
+        animation: slideInUp .2s;
+      }
+      @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
     }
 
     /* Sehr kleine Screens (iPhone SE etc.) */
@@ -848,7 +1235,7 @@
   <div class="cal-grid" id="calGrid"></div>
 </div>
 
-<div class="stats-bar">
+<div class="stats-bar" onclick="toggleStatsExpanded(event)">
   <div class="stat v">
     <div class="stat-label">
       💗 Vanessa
@@ -915,6 +1302,96 @@
   </div>
 </div>
 <button class="reset-btn" title="Jahr zurücksetzen" onclick="resetYear()">🗑️</button>
+
+<!-- ── MOBILE: Floating Action Button ── -->
+<button class="fab" id="fab" onclick="openAddSheet()">
+  <span class="fab-plus">＋</span> Urlaub eintragen
+</button>
+
+<!-- ── Shared Sheet-Backdrop ── -->
+<div class="sheet-backdrop" id="sheetBackdrop" onclick="closeAllSheets()"></div>
+
+<!-- ── Add-Sheet (Urlaub eintragen mit Range-Picker) ── -->
+<div class="sheet" id="addSheet" role="dialog" aria-labelledby="addSheetTitle">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="addSheetTitle">Urlaub eintragen</div>
+    <button class="sheet-close" onclick="closeAddSheet()" aria-label="Schließen">×</button>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-section">
+      <div class="sheet-section-label">Für wen?</div>
+      <div class="pill-row">
+        <button class="pill v" id="addPillV" onclick="setAddPerson('v')">💗 Vanessa</button>
+        <button class="pill m" id="addPillM" onclick="setAddPerson('m')">💙 Moritz</button>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-section-label">Art</div>
+      <div class="pill-row">
+        <button class="pill type" id="addPillU" onclick="setAddType('u')">☀️ Urlaub</button>
+        <button class="pill type gleit" id="addPillG" onclick="setAddType('g')">⏱ Gleittag</button>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-section-label">Zeitraum</div>
+      <div class="picker-nav">
+        <button id="pickerPrev" onclick="pickerShiftMonth(-1)" aria-label="Voriger Monat">‹</button>
+        <div class="picker-month" id="pickerMonth">—</div>
+        <button id="pickerNext" onclick="pickerShiftMonth(+1)" aria-label="Nächster Monat">›</button>
+      </div>
+      <div class="picker-wdays">
+        <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+      </div>
+      <div class="picker-days" id="pickerDays"></div>
+      <div class="range-summary">
+        <span class="rs-text empty" id="rangeText">Starttag tippen</span>
+        <span class="rs-count" id="rangeCount"></span>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-section-label">Beschriftung (optional)</div>
+      <input type="text" class="sheet-input" id="addLabel" placeholder="z.B. Italien, Familienbesuch …" maxlength="60" />
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="sheet-btn primary" id="addConfirm" onclick="confirmAdd()" disabled>Eintragen</button>
+  </div>
+</div>
+
+<!-- ── Day-Action-Sheet (Tap auf markierten Tag) ── -->
+<div class="sheet" id="dayActionSheet" role="dialog">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">Tag bearbeiten</div>
+    <button class="sheet-close" onclick="closeDayActionSheet()" aria-label="Schließen">×</button>
+  </div>
+  <div class="sheet-body" style="padding-top: 0; padding-left: 0; padding-right: 0;">
+    <div class="action-day-info" id="dayActionInfo" style="padding-left: 18px; padding-right: 18px;"></div>
+    <button class="action-row" onclick="dayActionEditLabel()"><span class="ar-icon">🏷</span> Beschriftung bearbeiten</button>
+    <button class="action-row" onclick="dayActionEditPerson()"><span class="ar-icon">👤</span> Person ändern</button>
+    <button class="action-row danger" onclick="dayActionDeleteBlock()"><span class="ar-icon">🗑</span> <span id="dayActionDeleteLabel">Block löschen</span></button>
+  </div>
+</div>
+
+<!-- ── Label-Sheet (Custom Modal statt iOS-prompt) ── -->
+<div class="sheet" id="labelSheet" role="dialog">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="labelSheetTitle">Beschriftung</div>
+    <button class="sheet-close" onclick="closeLabelSheet()" aria-label="Schließen">×</button>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-section" id="labelSheetInfo" style="font-size: 13px; color: var(--muted);"></div>
+    <div class="sheet-section">
+      <input type="text" class="sheet-input" id="labelInput" placeholder="z.B. Italien" maxlength="60" />
+    </div>
+  </div>
+  <div class="sheet-footer" style="display: flex; gap: 8px;">
+    <button class="sheet-btn ghost" style="flex: 1;" onclick="closeLabelSheet()">Abbrechen</button>
+    <button class="sheet-btn primary" style="flex: 2;" onclick="confirmLabel()">Speichern</button>
+  </div>
+</div>
 
 <script>
   // ── Firebase Konfiguration ────────────────────────────────────
@@ -1226,6 +1703,8 @@
 
   function editLabel(key) {
     if (!getMarkClass(key)) return;
+    // Auf Mobile: das neue Sheet statt iOS-prompt
+    if (isMobile && isMobile()) { openLabelSheet(key); return; }
     const block = getBlockKeys(key);
     const current = labels[key] || '';
     const val = prompt(
@@ -1427,6 +1906,7 @@
     if (e.touches.length !== 1) return;
     if (e.target.closest && e.target.closest('.block-label')) return;  // Label hat eigenen Handler
     if (e.target.closest && e.target.closest('button, select, input')) return;
+    if (e.target.closest && e.target.closest('.sheet, .sheet-backdrop, .fab, .stats-bar')) return; // Sheets/FAB nicht abfangen
 
     const key = keyFromTouch(e.touches[0]);
     if (!key) return;
@@ -1436,6 +1916,10 @@
     touchAppliedOnce    = false;
     touchLongPressFired = false;
     dragging            = false;
+
+    // Auf Mobile: kein Drag, kein direktes Markieren beim Touch-Start.
+    // Tap-Verhalten wird in endTouch entschieden (Action-Sheet oder gar nichts).
+    if (isMobile()) return;
 
     // Aktion vorbestimmen (für später)
     dragAction = hasMarkOfType(key, person, markMode) ? 'remove' : 'add';
@@ -1456,6 +1940,11 @@
 
   document.addEventListener('touchmove', (e) => {
     if (!touchStartKey || e.touches.length !== 1) return;
+    if (isMobile()) {
+      // Auf Mobile: kein Drag-Markieren – Scrollen erlauben
+      touchMoved = true;
+      return;
+    }
 
     const key = keyFromTouch(e.touches[0]);
     if (!key) return;
@@ -1481,6 +1970,21 @@
 
   function endTouch() {
     clearTimeout(touchLongPressTimer);
+
+    // Mobile-Branch: Tap auf markierten Tag → Action-Sheet, sonst nichts.
+    if (isMobile()) {
+      if (!touchMoved && touchStartKey) {
+        const key = touchStartKey;
+        if (getMarkClass(key)) {
+          openDayActionSheet(key);
+        }
+        // Auf leerem Tag: bewusst nichts → User nutzt FAB.
+      }
+      touchStartKey = null;
+      flushPendingCloudData();
+      return;
+    }
+
     if (touchLongPressFired) {
       // Label-Editor wurde geöffnet, kein Toggle
       touchStartKey = null;
@@ -2105,6 +2609,395 @@
     closeSyncPanel();
   }
 
+  // ── MOBILE / SHEET INFRASTRUCTURE ────────────────────────────
+  function isMobile() {
+    return window.matchMedia('(max-width: 820px)').matches;
+  }
+
+  function openSheet(id) {
+    document.getElementById('sheetBackdrop').classList.add('show');
+    document.getElementById(id).classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSheet(id) {
+    document.getElementById(id).classList.remove('show');
+    const anyOpen = document.querySelectorAll('.sheet.show').length > 0;
+    if (!anyOpen) {
+      document.getElementById('sheetBackdrop').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+  function closeAllSheets() {
+    document.querySelectorAll('.sheet.show').forEach(s => s.classList.remove('show'));
+    document.getElementById('sheetBackdrop').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  // ── ADD SHEET (Urlaub eintragen mit Range-Picker) ─────────────
+  const addState = {
+    person: 'v',
+    type:   'u',
+    startKey: null,
+    endKey:   null,
+    viewY: 2026,
+    viewM: 0,
+    label: ''
+  };
+
+  function openAddSheet() {
+    // Defaults von Header übernehmen (zuletzt genutzt)
+    addState.person   = person;
+    addState.type     = markMode;
+    addState.startKey = null;
+    addState.endKey   = null;
+    addState.label    = '';
+
+    // View-Monat: aktueller echter Monat wenn im gewählten Jahr, sonst Januar des Jahres
+    const today = new Date();
+    if (today.getFullYear() === year) {
+      addState.viewY = year;
+      addState.viewM = today.getMonth();
+    } else {
+      addState.viewY = year;
+      addState.viewM = 0;
+    }
+
+    document.getElementById('addLabel').value = '';
+    renderAddSheet();
+    openSheet('addSheet');
+  }
+
+  function closeAddSheet() { closeSheet('addSheet'); }
+
+  function setAddPerson(p) {
+    addState.person = p;
+    renderAddSheet();
+  }
+  function setAddType(t) {
+    addState.type = t;
+    renderAddSheet();
+  }
+  function pickerShiftMonth(delta) {
+    let m = addState.viewM + delta;
+    let y = addState.viewY;
+    if (m < 0)  { m = 11; y--; }
+    if (m > 11) { m = 0;  y++; }
+    addState.viewY = y;
+    addState.viewM = m;
+    renderAddPicker();
+    updatePickerNav();
+  }
+
+  function updatePickerNav() {
+    // Picker bleibt im aktuell geöffneten Jahr (sonst verwirrend: Range würde
+    // bei Jahres-Wechsel teilweise ignoriert)
+    const atMin = addState.viewY === year && addState.viewM === 0;
+    const atMax = addState.viewY === year && addState.viewM === 11;
+    document.getElementById('pickerPrev').disabled = atMin;
+    document.getElementById('pickerNext').disabled = atMax;
+  }
+
+  function renderAddSheet() {
+    // Person-Pills
+    document.getElementById('addPillV').classList.toggle('active', addState.person === 'v');
+    document.getElementById('addPillM').classList.toggle('active', addState.person === 'm');
+    // Type-Pills
+    document.getElementById('addPillU').classList.toggle('active', addState.type === 'u');
+    document.getElementById('addPillG').classList.toggle('active', addState.type === 'g');
+    renderAddPicker();
+    updatePickerNav();
+    updateRangeSummary();
+  }
+
+  function renderAddPicker() {
+    const y = addState.viewY, mo = addState.viewM;
+    const monthName = MONTHS[mo] + ' ' + y;
+    document.getElementById('pickerMonth').textContent = monthName;
+
+    // Accent-Klasse anhand Person + Typ
+    const accCls = `acc-${addState.person}${addState.type === 'g' ? '-g' : ''}`;
+    const daysEl = document.getElementById('pickerDays');
+    daysEl.className = 'picker-days ' + accCls;
+    daysEl.innerHTML = '';
+
+    const todayK = todayKey();
+    const first  = new Date(y, mo, 1);
+    let offset   = first.getDay() - 1;
+    if (offset < 0) offset = 6;
+    for (let i = 0; i < offset; i++) {
+      daysEl.appendChild(mk('div', 'pd empty'));
+    }
+
+    // Auf Picker-Jahr passende Holidays (falls anderes Jahr als geöffnetes)
+    const hol = (y === year) ? holidays : buildHolidays(y, state);
+    const daysInMo = new Date(y, mo + 1, 0).getDate();
+    for (let d = 1; d <= daysInMo; d++) {
+      const key = dateKey(y, mo, d);
+      const dow = new Date(y, mo, d).getDay();
+      const isWE  = dow === 0 || dow === 6;
+      const isHol = hol.has(key);
+
+      let cls = 'pd';
+      if (isWE)  cls += ' we';
+      if (isHol) cls += ' holiday';
+      if (key === todayK) cls += ' today';
+
+      // Existierende Markierung im aktuell geöffneten Jahr anzeigen
+      if (y === year) {
+        const vU = marks[key] && marks[key].has('v');
+        const mU = marks[key] && marks[key].has('m');
+        const vG = gleit[key] && gleit[key].has('v');
+        const mG = gleit[key] && gleit[key].has('m');
+        const hasV = vU || vG, hasM = mU || mG;
+        if (hasV && hasM)      cls += ' has-mark has-vm';
+        else if (hasV)         cls += ' has-mark has-v';
+        else if (hasM)         cls += ' has-mark has-m';
+      }
+
+      // Range-Highlight
+      const rangeCls = rangeClassFor(key);
+      if (rangeCls) cls += ' ' + rangeCls;
+
+      const cell = mk('div', cls);
+      cell.dataset.date = key;
+      cell.textContent  = d;
+      cell.addEventListener('click', () => onPickerDayTap(key));
+      daysEl.appendChild(cell);
+    }
+  }
+
+  function rangeClassFor(key) {
+    const s = addState.startKey, e = addState.endKey;
+    if (!s) return '';
+    if (!e) return key === s ? 'range-start range-end' : '';
+    const [lo, hi] = s <= e ? [s, e] : [e, s];
+    if (key === lo && key === hi) return 'range-start range-end';
+    if (key === lo) return 'range-start';
+    if (key === hi) return 'range-end';
+    if (key > lo && key < hi) return 'range-mid';
+    return '';
+  }
+
+  function onPickerDayTap(key) {
+    if (!addState.startKey || (addState.startKey && addState.endKey)) {
+      addState.startKey = key;
+      addState.endKey   = null;
+    } else {
+      // Start gesetzt, End noch nicht
+      if (key === addState.startKey) {
+        // Tap auf selben Tag → reset (oder: einzelner Tag bestätigt)
+        addState.endKey = key;
+      } else if (key < addState.startKey) {
+        // Früherer Tag → swap: neuer Start, alter wird End
+        addState.endKey   = addState.startKey;
+        addState.startKey = key;
+      } else {
+        addState.endKey = key;
+      }
+    }
+    renderAddPicker();
+    updateRangeSummary();
+  }
+
+  function updateRangeSummary() {
+    const txtEl   = document.getElementById('rangeText');
+    const countEl = document.getElementById('rangeCount');
+    const btn     = document.getElementById('addConfirm');
+    const s = addState.startKey, e = addState.endKey;
+
+    if (!s) {
+      txtEl.textContent = 'Starttag tippen';
+      txtEl.className = 'rs-text empty';
+      countEl.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Eintragen';
+      return;
+    }
+    if (!e) {
+      txtEl.textContent = formatNice(s) + ' …';
+      txtEl.className = 'rs-text';
+      countEl.textContent = 'Endtag wählen';
+      btn.disabled = true;
+      btn.textContent = 'Eintragen';
+      return;
+    }
+    const [lo, hi] = s <= e ? [s, e] : [e, s];
+    const range = getDateRange(lo, hi);
+    const workdays = range.filter(k => {
+      const yy = parseInt(k.slice(0,4));
+      const hol = (yy === year) ? holidays : buildHolidays(yy, state);
+      const dow = new Date(k).getDay();
+      return dow !== 0 && dow !== 6 && !hol.has(k);
+    }).length;
+
+    const isSame = lo === hi;
+    txtEl.textContent = isSame ? formatNice(lo) : `${formatNice(lo)} – ${formatNice(hi)}`;
+    txtEl.className = 'rs-text';
+    countEl.textContent = workdays === 1 ? '1 Werktag' : `${workdays} Werktage`;
+    btn.disabled = false;
+    btn.textContent = workdays === 0
+      ? 'Eintragen' // nur WE/Feiertag – trotzdem erlauben
+      : (workdays === 1 ? '1 Werktag eintragen' : `${workdays} Werktage eintragen`);
+  }
+
+  function formatNice(key) {
+    const d = new Date(key);
+    return `${d.getDate()}. ${MONTHS[d.getMonth()].slice(0,3)}`;
+  }
+
+  function confirmAdd() {
+    const s = addState.startKey, e = addState.endKey;
+    if (!s || !e) return;
+    const [lo, hi] = s <= e ? [s, e] : [e, s];
+    const range = getDateRange(lo, hi);
+    // Picker erlaubt auch andere Jahre – falls Range das Jahr verlässt: nur Tage im aktuellen Jahr verarbeiten
+    const sameYear = range.filter(k => k.startsWith(year + '-'));
+    if (sameYear.length === 0) {
+      alert('Der gewählte Zeitraum liegt außerhalb von ' + year + '.');
+      return;
+    }
+
+    // Person+Typ temporär setzen, applyToKey nutzt die globalen Vars
+    const oldPerson = person, oldMode = markMode;
+    person = addState.person;
+    markMode = addState.type;
+    sameYear.forEach(k => applyToKey(k, 'add'));
+    person = oldPerson;
+    markMode = oldMode;
+
+    // Label-Logik: pro entstandenem Block den Input-Wert anwenden,
+    // sonst bestehende Beschriftung im Block auf neue Tage propagieren
+    const labelVal = document.getElementById('addLabel').value.trim();
+    const seen = new Set();
+    sameYear.forEach(k => {
+      if (seen.has(k)) return;
+      const block = getBlockKeys(k);
+      if (!block.length) return;
+      block.forEach(d => seen.add(d));
+      const existing = block.map(d => labels[d]).find(l => l);
+      const finalLbl = labelVal || existing;
+      if (finalLbl) block.forEach(d => labels[d] = finalLbl);
+    });
+
+    save();
+    render();
+    updateStats();
+    closeAddSheet();
+  }
+
+  // ── DAY ACTION SHEET (Tap auf existierenden Tag) ─────────────
+  let dayActionKey = null;
+
+  function openDayActionSheet(key) {
+    dayActionKey = key;
+    const info = document.getElementById('dayActionInfo');
+    const d = new Date(key);
+    const wd = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+    const dateStr = `${wd}, ${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const personsArr = [];
+    if (marks[key] && marks[key].has('v')) personsArr.push('💗 Vanessa (Urlaub)');
+    if (gleit[key] && gleit[key].has('v')) personsArr.push('💗 Vanessa (Gleit)');
+    if (marks[key] && marks[key].has('m')) personsArr.push('💙 Moritz (Urlaub)');
+    if (gleit[key] && gleit[key].has('m')) personsArr.push('💙 Moritz (Gleit)');
+    const lbl = labels[key] ? `<br><em>"${escapeHtml(labels[key])}"</em>` : '';
+    info.innerHTML = `<strong>${dateStr}</strong>${personsArr.join(' · ')}${lbl}`;
+
+    const block = getBlockKeys(key);
+    document.getElementById('dayActionDeleteLabel').textContent =
+      block.length === 1 ? 'Tag löschen' : `Block löschen (${block.length} Tage)`;
+
+    openSheet('dayActionSheet');
+  }
+  function closeDayActionSheet() { closeSheet('dayActionSheet'); dayActionKey = null; }
+
+  function dayActionEditLabel() {
+    const key = dayActionKey;
+    closeDayActionSheet();
+    if (key) openLabelSheet(key);
+  }
+
+  function dayActionDeleteBlock() {
+    if (!dayActionKey) return;
+    const block = getBlockKeys(dayActionKey);
+    block.forEach(k => {
+      if (marks[k]) { marks[k].delete('v'); marks[k].delete('m'); if (!marks[k].size) delete marks[k]; }
+      if (gleit[k]) { gleit[k].delete('v'); gleit[k].delete('m'); if (!gleit[k].size) delete gleit[k]; }
+      delete labels[k];
+    });
+    closeDayActionSheet();
+    save(); render(); updateStats();
+  }
+
+  function dayActionEditPerson() {
+    // Toggelt die Person: wenn nur v → fügt m hinzu, wenn nur m → fügt v hinzu, etc.
+    // Einfachste Lösung: kompletten Block übertragen
+    if (!dayActionKey) return;
+    const key = dayActionKey;
+    const block = getBlockKeys(key);
+    // Welche Personen sind aktiv im Block?
+    const hasV = block.some(k => (marks[k] && marks[k].has('v')) || (gleit[k] && gleit[k].has('v')));
+    const hasM = block.some(k => (marks[k] && marks[k].has('m')) || (gleit[k] && gleit[k].has('m')));
+
+    // Wenn beide drin: nichts zu tun
+    // Wenn nur einer: zweiten dazu nehmen
+    // Wenn keiner (sollte nicht vorkommen): nichts
+    const addP = hasV && !hasM ? 'm' : (!hasV && hasM ? 'v' : null);
+    if (!addP) { closeDayActionSheet(); return; }
+
+    const oldPerson = person, oldMode = markMode;
+    person = addP;
+    // Welcher Typ? Falls Block aus Urlaub-Tagen besteht → u, sonst → g
+    const blockIsGleit = block.every(k => gleit[k] && (gleit[k].has('v') || gleit[k].has('m')) && !(marks[k] && marks[k].size));
+    markMode = blockIsGleit ? 'g' : 'u';
+    block.forEach(k => applyToKey(k, 'add'));
+    person = oldPerson;
+    markMode = oldMode;
+
+    closeDayActionSheet();
+    save(); render(); updateStats();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ── LABEL SHEET (Custom Modal statt iOS-prompt) ──────────────
+  let labelSheetKey = null;
+  function openLabelSheet(key) {
+    if (!getMarkClass(key)) return;
+    labelSheetKey = key;
+    const block = getBlockKeys(key);
+    document.getElementById('labelSheetTitle').textContent = 'Beschriftung';
+    document.getElementById('labelSheetInfo').textContent =
+      `Für diesen Block (${block.length} Tag${block.length === 1 ? '' : 'e'}). Leer lassen zum Entfernen.`;
+    document.getElementById('labelInput').value = labels[key] || '';
+    openSheet('labelSheet');
+    setTimeout(() => document.getElementById('labelInput').focus(), 300);
+  }
+  function closeLabelSheet() { closeSheet('labelSheet'); labelSheetKey = null; }
+  function confirmLabel() {
+    if (!labelSheetKey) { closeLabelSheet(); return; }
+    const block = getBlockKeys(labelSheetKey);
+    const val = document.getElementById('labelInput').value.trim();
+    if (val) block.forEach(k => labels[k] = val);
+    else     block.forEach(k => delete labels[k]);
+    closeLabelSheet();
+    save(); render();
+  }
+
+  // Enter-Key im Label-Input bestätigt (Script läuft am DOM-Ende; Element existiert bereits)
+  document.getElementById('labelInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmLabel(); }
+  });
+
+  // ── STATS BAR collapsible auf Mobile ─────────────────────────
+  function toggleStatsExpanded(e) {
+    if (!isMobile()) return;
+    // Wenn auf einen Button (Carry/Gleit) geklickt wird, nicht toggeln
+    if (e && e.target.closest('button')) return;
+    document.querySelector('.stats-bar').classList.toggle('expanded');
+  }
+
   // ── Init ──────────────────────────────────────────────────────
   load();
   document.getElementById('yearDisplay').textContent = year;
@@ -2114,6 +3007,8 @@
   const sel = document.getElementById('stateSelect');
   sel.value = state;
 
+  // Auf Mobile immer Grid (Tabelle ist auf 375px unbrauchbar)
+  if (isMobile()) viewMode = 'grid';
   // Sync view toggle
   document.getElementById('vtGrid').classList.toggle('active',   viewMode === 'grid');
   document.getElementById('vtLinear').classList.toggle('active', viewMode === 'linear');
