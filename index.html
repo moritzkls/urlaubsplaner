@@ -230,7 +230,9 @@
     }
     .cal-grid.view-linear .day.v-only .wd-letter,
     .cal-grid.view-linear .day.m-only .wd-letter,
-    .cal-grid.view-linear .day.both .wd-letter {
+    .cal-grid.view-linear .day.both .wd-letter,
+    .cal-grid.view-linear .day.both-vg .wd-letter,
+    .cal-grid.view-linear .day.both-mg .wd-letter {
       color: white;
     }
     .cal-grid.view-linear .day.we:not(.v-only):not(.m-only):not(.both) {
@@ -316,6 +318,28 @@
     }
     .day.both-gleit > span { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 
+    /* Both-VG: Vanessa Gleit (obere Hälfte gestreift), Moritz Urlaub (untere Hälfte solid) */
+    .day.both-vg { color: #fff; }
+    .day.both-vg::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0, rgba(255,255,255,.55) 3px, transparent 3px, transparent 6px) top/100% 50% no-repeat,
+        linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
+      border-radius: inherit;
+    }
+    .day.both-vg > span { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+
+    /* Both-MG: Vanessa Urlaub (obere Hälfte solid), Moritz Gleit (untere Hälfte gestreift) */
+    .day.both-mg { color: #fff; }
+    .day.both-mg::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0, rgba(255,255,255,.55) 3px, transparent 3px, transparent 6px) bottom/100% 50% no-repeat,
+        linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
+      border-radius: inherit;
+    }
+    .day.both-mg > span { text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+
     /* ── BLÖCKE: zusammenhängende Tage ────────────────────────── */
 
     /* Bridge: kleines farbiges Stück das den Gap zwischen 2 Zellen füllt */
@@ -337,7 +361,9 @@
     .cal-grid.view-grid .day.m-only  .block-bridge,
     .cal-grid.view-grid .day.m-gleit .block-bridge { background: var(--m); }
     .cal-grid.view-grid .day.both       .block-bridge,
-    .cal-grid.view-grid .day.both-gleit .block-bridge {
+    .cal-grid.view-grid .day.both-gleit .block-bridge,
+    .cal-grid.view-grid .day.both-vg    .block-bridge,
+    .cal-grid.view-grid .day.both-mg    .block-bridge {
       background: linear-gradient(180deg, var(--v) 50%, var(--m) 50%);
     }
 
@@ -365,7 +391,9 @@
     .cal-grid.view-linear .day.m-only  .block-bridge,
     .cal-grid.view-linear .day.m-gleit .block-bridge { background: var(--m); }
     .cal-grid.view-linear .day.both       .block-bridge,
-    .cal-grid.view-linear .day.both-gleit .block-bridge {
+    .cal-grid.view-linear .day.both-gleit .block-bridge,
+    .cal-grid.view-linear .day.both-vg    .block-bridge,
+    .cal-grid.view-linear .day.both-mg    .block-bridge {
       background: linear-gradient(90deg, var(--v) 50%, var(--m) 50%);
     }
 
@@ -1253,7 +1281,7 @@
   <div class="stat b">
     <div class="stat-label">✈️ Gemeinsam</div>
     <div class="stat-num" id="bNum">0</div>
-    <div class="stat-sub">Arbeitstage zusammen</div>
+    <div class="stat-sub">Urlaubstage zusammen</div>
   </div>
 
   <div class="divider"></div>
@@ -1733,9 +1761,10 @@
     const hasM = mU || mG;
 
     if (hasV && hasM) {
-      // Beide: wenn beide Gleit, dann both-gleit, sonst normal both
-      if (vG && mG) return 'both-gleit';
-      return 'both';
+      if (vG && mG) return 'both-gleit';   // beide Gleit
+      if (vG && mU) return 'both-vg';      // Vanessa Gleit (oben), Moritz Urlaub
+      if (vU && mG) return 'both-mg';      // Vanessa Urlaub, Moritz Gleit (unten)
+      return 'both';                        // beide Urlaub
     }
     if (hasV) return vG ? 'v-gleit' : 'v-only';
     if (hasM) return mG ? 'm-gleit' : 'm-only';
@@ -1746,7 +1775,7 @@
     const el = document.querySelector(`[data-date="${key}"]`);
     if (!el) return;
     el.classList.remove(
-      'v-only','m-only','both','v-gleit','m-gleit','both-gleit',
+      'v-only','m-only','both','v-gleit','m-gleit','both-gleit','both-vg','both-mg',
       'we','block-start','block-mid','block-end','has-label'
     );
     const cls = getMarkClass(key);
